@@ -96,6 +96,21 @@ export const login = async (req, res) => {
   }
 };
 
+export const refreshAccessToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+    if (!refreshToken) return res.status(401).json({ msg: 'No refresh token' });
+
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    const user = await userModel.findById(decoded.id);
+    if (!user || user.refreshToken !== refreshToken) return res.status(403).json({ msg: 'Invalid refresh token' });
+
+    const newAccessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '15m' });
+    res.json({ accessToken: newAccessToken });
+  } catch (err) {
+    res.status(401).json({ msg: 'Refresh token invalid or expired', error: err.message });
+  }
+};
 export const deleteusers = async (req, res) => {
   const user = await userModel.deleteMany();
 

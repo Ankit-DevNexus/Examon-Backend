@@ -30,7 +30,7 @@ export const createReview = async (req, res) => {
       });
     }
 
-    const uploadedImage = await uploadOnCloudinary(imageReview);
+    const uploadedImage = await uploadOnCloudinary(imageReview, 'review_images');
     if (!uploadedImage) {
       return res.status(500).json({
         success: false,

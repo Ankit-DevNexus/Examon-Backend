@@ -27,10 +27,6 @@ const ReviewSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    status: {
-      type: Boolean,
-      default: false,
-    },
     publicId: {
       type: String,
     },
@@ -38,6 +34,10 @@ const ReviewSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'user', // actual name of model
       required: true,
+    },
+    status: {
+      type: String,
+      default: 'pending',
     },
   },
   {

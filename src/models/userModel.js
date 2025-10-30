@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema({
       userAgent: String,
     },
   ],
+  refreshToken: String,
 });
 
 // Hash password before saving
