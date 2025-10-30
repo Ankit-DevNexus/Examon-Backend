@@ -18,10 +18,7 @@ export const Authenticate = async (req, res, next) => {
 
     next();
   } catch (err) {
-    if (err.name === 'TokenExpiredError') {
-      return res.status(401).json({ msg: 'Token expired. Please login again.' });
-    }
-    res.status(401).json({ msg: 'Token is not valid', error: err.message });
+    return res.status(403).json({ msg: 'Access token expired' }); // frontend should call /refresh
   }
 };
 

@@ -1,5 +1,5 @@
 import express, { Router } from 'express';
-import { deleteusers, login, refreshAccessToken, signup } from '../controllers/userController.js';
+import { deleteUsers, login, logout, refreshAccessToken, signup } from '../controllers/userController.js';
 import { ContactUsController } from '../controllers/contactusController.js';
 import upload from '../middleware/multerMiddleware.js';
 import { createReview, deleteReview, getAllReview, updateReview } from '../controllers/reviewController.js';
@@ -44,6 +44,14 @@ import {
   getExamNotesById,
   updateExamNotes,
 } from '../controllers/examNotesController.js';
+import {
+  addBatchToCategory,
+  deleteBatch,
+  deleteCategory,
+  getAllCategories,
+  getBatchesByCategory,
+  updateBatch,
+} from '../controllers/liveBatchController.js';
 
 const router = express.Router();
 
@@ -51,11 +59,12 @@ const router = express.Router();
 router.post('/admin/signup', adminSignup);
 router.post('/admin/signin', adminLogin);
 router.post('/refresh', refreshAccessToken);
+router.post('/logout', Authenticate, logout);
 
 // client (users)
 router.post('/signup', signup);
 router.post('/signin', login);
-router.delete('/delete', Authenticate, authorize('admin'), deleteusers);
+router.delete('/delete', Authenticate, authorize('admin'), deleteUsers);
 
 // --------------------------- contact us  ----------------------------
 router.post('/contact-us', ContactUsController);
@@ -110,11 +119,18 @@ router.get('/profile/quizzes', Authenticate, authorize('user'), getUserQuizHisto
 router.get('/user/attempts', Authenticate, authorize('user'), getUserQuizAttempts);
 
 // Exam notes
-
 router.post('/notes/add', Authenticate, authorize('admin'), upload.single('notes'), createExamNotes);
 router.get('/notes/all', getAllExamNotes);
 router.get('/notes/:categoryId/:noteId', getExamNotesById);
 router.patch('/notes/updates/:categoryId/:noteId', updateExamNotes);
 router.delete('/notes/delete/:categoryId/:noteId', deleteExamNotes);
 
+// ------------------------------------ Live batches _________________
+// ROUTES
+router.post('/live/batches', upload.single('image'), addBatchToCategory); // add batch (and upload image)
+router.get('/live/batches', getAllCategories); // get all categories
+router.get('/live/batches/:categoryId', getBatchesByCategory); // get one category’s batches
+router.patch('/live/batches/:categoryId/:batchId', upload.single('image'), updateBatch); // update batch
+router.delete('/live/batches/:categoryId/:batchId', deleteBatch); // delete batch
+router.delete('/live/batches/:categoryId', deleteCategory); // delete category
 export default router;

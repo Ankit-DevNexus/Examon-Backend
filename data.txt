@@ -1,0 +1,148 @@
+[
+    {
+        "id": 1,
+        "batchName": "All in One – Master Batch (Live + Recorded)",
+        "syllabus": "Tech + Non Tech covered",
+        "duration": "2 Years",
+        "price": 5999,
+        "teachers": [
+            "Shivam Gupta Sir",
+            "Abhishek Sir",
+            "Gaurav Sir",
+            "Sheetanshu Sir"
+        ],
+        "enrollLink": "https://classplusapp.com/",
+        "image": "https://res.cloudinary.com/dt4ohfuwc/image/upload/v1760590838/Picture1_jf6uek.png"
+    },
+    {
+        "id": 2,
+        "batchName": "Shikhar - DDA 2025 Junior Engineer (Mechanical) Complete Online Batch",
+        "syllabus": "Complete Technical (Electrical & Mechanical) + Non-Technical",
+        "duration": "1 Year",
+        "price": 3499,
+        "teachers": [
+            "Shivam Gupta Sir",
+            "Abhishek Sir",
+            "Gaurav Sir",
+            "Sheetanshu Sir"
+        ],
+        "enrollLink": "https://classplusapp.com/",
+        "image": "https://res.cloudinary.com/dt4ohfuwc/image/upload/v1760590838/Picture2_zkells.png"
+    },
+    {
+        "id": 3,
+        "batchName": "Lakshya : IOCL Junior Engineer 2025 Complete Online Live + Recorded Batch",
+        "syllabus": "Complete Technical + Non-Technical",
+        "duration": "1 Year",
+        "price": 3499,
+        "teachers": [
+            "Shivam Gupta Sir",
+            "Gaurav Sir"
+        ],
+        "enrollLink": "https://classplusapp.com/",
+        "image": "https://res.cloudinary.com/dt4ohfuwc/image/upload/v1760590837/Picture3_utreks.png"
+    },
+    {
+        "id": 4,
+        "batchName": "SSC JE 2025 (ME) — Final Punch (Live + Recording) Complete Batch",
+        "syllabus": "Complete Technical + Non-Technical",
+        "duration": "1 Year",
+        "price": 3499,
+        "teachers": [
+            "Shivam Gupta Sir",
+            "Abhishek Sir",
+            "Gaurav Sir",
+            "Sheetanshu Sir"
+        ],
+        "enrollLink": "https://classplusapp.com/",
+        "image": "https://images.unsplash.com/photo-1556761175-4b46a572b786"
+    },
+    {
+        "id": 5,
+        "batchName": "RapidFire - SSC JE 2025 Junior Engineer (Mechanical) Online MCQ Crash Course Live Batch",
+        "syllabus": "Complete Technical + Non-Technical (Practice Batch)",
+        "duration": "1 Year",
+        "price": 2499,
+        "teachers": [
+            "Shivam Gupta Sir",
+            "Abhishek Sir",
+            "Gaurav Sir",
+            "Sheetanshu Sir"
+        ],
+        "enrollLink": "https://classplusapp.com/",
+        "image": "https://res.cloudinary.com/dt4ohfuwc/image/upload/v1760590837/Picture4_kji1uk.png"
+    },
+    {
+        "id": 6,
+        "batchName": "FastTrack - NHPC 2025 Junior Engineer (Mechanical) Online Complete Live + Recorded Batch",
+        "syllabus": "Complete Technical + Non-Technical",
+        "duration": "1 Year",
+        "price": 3499,
+        "teachers": [
+            "Shivam Gupta Sir",
+            "Abhishek Sir",
+            "Gaurav Sir",
+            "Sheetanshu Sir"
+        ],
+        "enrollLink": "https://classplusapp.com/",
+        "image": "https://res.cloudinary.com/dt4ohfuwc/image/upload/v1760590837/Picture5_nspz8r.png"
+    },
+    {
+        "id": 7,
+        "batchName": "Rajdhani Express 2.0 – RRB JE 2025-26 (CBT-1+2) Complete Foundation Batch (Live+Recorded)",
+        "syllabus": "Complete Technical + Non-Technical",
+        "duration": "1 Year",
+        "price": 4999,
+        "teachers": [
+            "Shivam Gupta Sir",
+            "Abhishek Sir",
+            "Gaurav Sir",
+            "Sheetanshu Sir"
+        ],
+        "enrollLink": "https://classplusapp.com/diy/courses/course-overview?id=742137",
+        "image": "https://res.cloudinary.com/dt4ohfuwc/image/upload/v1760590837/Picture6_ygk1bq.png"
+    },
+    {
+        "id": 8,
+        "batchName": "Momentum Plus - The AE Special 2026 Foundation Batch (Mechanical)",
+        "syllabus": "Complete Technical + Non-Technical",
+        "duration": "1 Year",
+        "price": 4499,
+        "teachers": [
+            "Shivam Gupta Sir",
+            "Abhishek Sir",
+            "Gaurav Sir",
+            "Sheetanshu Sir"
+        ],
+        "enrollLink": "https://classplusapp.com/diy/courses/course-overview?id=742137",
+        "image": "https://res.cloudinary.com/dt4ohfuwc/image/upload/v1760590837/Picture7_pt4oyf.png"
+    },
+    {
+        "id": 9,
+        "batchName": "TEJAS — RRB JE 2025 (CBT-1) Complete Live + Recorded Batch",
+        "syllabus": "Complete Non-Technical",
+        "duration": "1 Year",
+        "price": 2999,
+        "teachers": [
+            "Shivam Gupta Sir",
+            "Abhishek Sir",
+            "Sheetanshu Sir"
+        ],
+        "enrollLink": "https://classplusapp.com/",
+        "image": "https://res.cloudinary.com/dt4ohfuwc/image/upload/v1760590837/Picture8_jxd8l0.png"
+    },
+    {
+        "id": 10,
+        "batchName": "TEJAS — Rajdhani Express Plus – RRB JE 2026 Foundation Batch",
+        "syllabus": "Complete Non-Technical",
+        "duration": "1 Year",
+        "price": 3999,
+        "teachers": [
+            "Shivam Gupta Sir",
+            "Abhishek Sir",
+            "Sheetanshu Sir"
+        ],
+        "enrollLink": "https://classplusapp.com/",
+        "image": "https://res.cloudinary.com/dt4ohfuwc/image/upload/v1760590838/Picture9_khn89v.png"
+    }
+]
