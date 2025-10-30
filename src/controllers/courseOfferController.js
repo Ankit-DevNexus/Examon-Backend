@@ -338,3 +338,34 @@ export const deleteCourseOffer = async (req, res) => {
 //     });
 //   }
 // };
+
+// Upload to Cloudinary
+// const uploadedImage = await uploadOnCloudinary(req.file.path, 'course_images');
+// if (!uploadedImage) {
+//   return res.status(500).json({ success: false, message: 'Image upload failed' });
+// }
+
+// //Find or create the category document
+// let existingCategory = await liveBatchModel.findOne({ examCategory: batchCategory });
+// if (!existingCategory) {
+//   existingCategory = new liveBatchModel({ examCategory: batchCategory, courses: [] });
+// }
+
+// //  Push new course inside that category
+// existingCategory.courses.push({
+//   img: uploadedImage.url,
+//   publicId: uploadedImage.public_id || '',
+//   clientId: req.user._id,
+//   examCategory,
+//   title,
+//   insideCourses: insideCourses?.split(',').map((i) => i.trim()) || [],
+//   actualprice: Number(actualprice),
+//   previousprice: Number(previousprice),
+//   percent: Number(percent),
+//   description,
+//   perks: perks?.split(',').map((i) => i.trim()) || [],
+//   Discount: Discount === 'true',
+//   amount: Number(amount),
+// });
+
+// const saved = await existingCategory.save();

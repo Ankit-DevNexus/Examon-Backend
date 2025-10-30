@@ -36,8 +36,8 @@ const ReviewSchema = new mongoose.Schema(
       required: true,
     },
     status: {
-      type: String,
-      default: 'pending',
+      type: Boolean,
+      default: false,
     },
   },
   {
