@@ -14,7 +14,7 @@ export const createCourseOffer = async (req, res) => {
     }
 
     // Upload to Cloudinary
-    const uploadedImage = await uploadOnCloudinary(req.file.path);
+    const uploadedImage = await uploadOnCloudinary(req.file.path, 'course_images');
     if (!uploadedImage) {
       return res.status(500).json({ success: false, message: 'Image upload failed' });
     }

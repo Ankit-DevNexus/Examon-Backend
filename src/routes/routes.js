@@ -1,5 +1,5 @@
 import express, { Router } from 'express';
-import { deleteusers, login, signup } from '../controllers/userController.js';
+import { deleteusers, login, refreshAccessToken, signup } from '../controllers/userController.js';
 import { ContactUsController } from '../controllers/contactusController.js';
 import upload from '../middleware/multerMiddleware.js';
 import { createReview, deleteReview, getAllReview, updateReview } from '../controllers/reviewController.js';
@@ -37,13 +37,20 @@ import {
   updateQuiz,
   uploadQuiz,
 } from '../controllers/quizController.js';
-import { createMaterial, deleteMaterial, getAllMaterials, getMaterialById, updateMaterial } from '../controllers/examNotesController.js';
+import {
+  createExamNotes,
+  deleteExamNotes,
+  getAllExamNotes,
+  getExamNotesById,
+  updateExamNotes,
+} from '../controllers/examNotesController.js';
 
 const router = express.Router();
 
 // Admin
 router.post('/admin/signup', adminSignup);
 router.post('/admin/signin', adminLogin);
+router.post('/refresh', refreshAccessToken);
 
 // client (users)
 router.post('/signup', signup);
@@ -78,7 +85,7 @@ router.delete('/news/delete/:id', Authenticate, authorize('admin'), deleteImageC
 // --------------------------- Courses ----------------------------
 router.post('/course/create', Authenticate, authorize('admin'), upload.single('img'), createCourseOffer);
 router.get('/course/all', getAllCourseOffers);
-router.get('/course/:id', getCourseOfferById);
+router.get('/course/:categoryId/:courseId', getCourseOfferById);
 router.patch('/course/update/:categoryId/:courseId', Authenticate, authorize('admin'), upload.single('img'), updateCourseOffer);
 router.delete('/course/delete/:categoryId/:courseId', Authenticate, authorize('admin'), deleteCourseOffer);
 
@@ -104,19 +111,10 @@ router.get('/user/attempts', Authenticate, authorize('user'), getUserQuizAttempt
 
 // Exam notes
 
-// CREATE
-router.post('/notes/add', Authenticate, authorize('admin'), upload.single('notes'), createMaterial);
-
-// READ ALL
-router.get('/notes/all', getAllMaterials);
-
-// READ SINGLE
-router.get('/notes/:id', getMaterialById);
-
-// UPDATE
-router.put('/notes/updates/:id', updateMaterial);
-
-// DELETE
-router.delete('/notes/delete/:id', deleteMaterial);
+router.post('/notes/add', Authenticate, authorize('admin'), upload.single('notes'), createExamNotes);
+router.get('/notes/all', getAllExamNotes);
+router.get('/notes/:categoryId/:noteId', getExamNotesById);
+router.patch('/notes/updates/:categoryId/:noteId', updateExamNotes);
+router.delete('/notes/delete/:categoryId/:noteId', deleteExamNotes);
 
 export default router;

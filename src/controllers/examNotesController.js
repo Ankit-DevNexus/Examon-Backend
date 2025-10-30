@@ -1,135 +1,137 @@
 import fs from 'fs';
 import StudyMaterial from '../models/examNotesModel.js';
 import { uploadOnCloudinary } from '../utils/cloudinary.js';
+import { v2 as cloudinary } from 'cloudinary';
 
 // CREATE
-export const createMaterial = async (req, res) => {
+export const createExamNotes = async (req, res) => {
   try {
-    const { category, title, level, language } = req.body;
+    const { notesCategory, title, level, language } = req.body;
 
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'Please upload a PDF file' });
     }
 
-    const notesPdf = req.file?.path;
-    if (!notesPdf) {
-      return res.status(400).json({
-        success: false,
-        message: 'Notes pdf is missing',
-      });
-    }
-    console.log('notesPdf', notesPdf);
+    const filePath = req.file.path;
+    const uploaded = await uploadOnCloudinary(filePath, 'study_materials');
 
-    const uploadednotes = await uploadOnCloudinary(notesPdf);
-    if (!uploadednotes) {
-      return res.status(500).json({
-        success: false,
-        message: 'Error uploading image to Cloudinary',
-      });
+    if (!uploaded) {
+      return res.status(500).json({ success: false, message: 'Error uploading to Cloudinary' });
     }
 
-    // Save to MongoDB
-    const newMaterial = new StudyMaterial({
-      category,
+    // Find or create category
+    let categoryDoc = await StudyMaterial.findOne({ notesCategory });
+    if (!categoryDoc) {
+      categoryDoc = new StudyMaterial({ notesCategory, notes: [] });
+    }
+
+    // Push note into category
+    categoryDoc.notes.push({
       title,
       level,
       language,
-      pdfUrl: uploadednotes.url,
-      publicId: uploadednotes.public_id,
+      pdfUrl: uploaded.url,
+      publicId: uploaded.public_id,
     });
 
-    await newMaterial.save();
+    const saved = await categoryDoc.save();
 
-    // Delete local file
-    fs.unlinkSync(req.file.path);
-
-    res.status(201).json({ success: true, data: newMaterial });
+    res.status(201).json({ success: true, data: saved });
   } catch (error) {
-    console.error('Error creating material:', error);
+    console.error('Error creating exam notes:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
 // READ ALL
-export const getAllMaterials = async (req, res) => {
+export const getAllExamNotes = async (req, res) => {
   try {
-    const materials = await StudyMaterial.find();
-    res.status(200).json({ success: true, data: materials });
+    const data = await StudyMaterial.find();
+    res.status(200).json({ success: true, data });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// READ ONE
-export const getMaterialById = async (req, res) => {
+// READ SINGLE NOTE BY CATEGORY + NOTE ID
+export const getExamNotesById = async (req, res) => {
   try {
-    const material = await StudyMaterial.findById(req.params.id);
-    if (!material) return res.status(404).json({ success: false, message: 'Material not found' });
+    const { categoryId, noteId } = req.params;
+    const category = await StudyMaterial.findById(categoryId);
+    if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
+    console.log('category', category);
 
-    res.status(200).json({ success: true, data: material });
+    const note = category.notes.id(noteId);
+    console.log('note', note);
+
+    if (!note) return res.status(404).json({ success: false, message: 'Note not found' });
+
+    res.status(200).json({ success: true, data: note });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// UPDATE (with optional PDF re-upload)
-export const updateMaterial = async (req, res) => {
+// UPDATE A NOTE
+export const updateExamNotes = async (req, res) => {
   try {
-    const { category, title, level, language } = req.body;
-    const material = await StudyMaterial.findById(req.params.id);
+    const { categoryId, noteId } = req.params;
+    const { title, level, language } = req.body;
 
-    if (!material) return res.status(404).json({ success: false, message: 'Material not found' });
+    const category = await StudyMaterial.findById(categoryId);
+    if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
 
-    let pdfUrl = material.pdfUrl;
-    let publicId = material.publicId;
+    const note = category.notes.id(noteId);
+    if (!note) return res.status(404).json({ success: false, message: 'Note not found' });
 
-    // If a new file is uploaded, replace it on Cloudinary
+    // Replace PDF if new file uploaded
     if (req.file) {
-      // Delete old file from Cloudinary
-      if (material.publicId) {
-        await cloudinary.uploader.destroy(material.publicId, { resource_type: 'raw' });
+      if (note.publicId) {
+        await cloudinary.uploader.destroy(note.publicId, { resource_type: 'raw' });
       }
 
-      const uploadRes = await cloudinary.uploader.upload(req.file.path, {
-        folder: 'study_materials',
-        resource_type: 'raw',
-      });
-
-      pdfUrl = uploadRes.secure_url;
-      publicId = uploadRes.public_id;
-
+      const uploaded = await uploadOnCloudinary(req.file.path, 'study_materials');
       fs.unlinkSync(req.file.path);
+      note.pdfUrl = uploaded.url;
+      note.publicId = uploaded.public_id;
     }
 
-    const updated = await StudyMaterial.findByIdAndUpdate(
-      req.params.id,
-      { category, title, level, language, pdfUrl, publicId },
-      { new: true },
-    );
+    // Update other fields
+    note.title = title || note.title;
+    note.level = level || note.level;
+    note.language = language || note.language;
 
-    res.status(200).json({ success: true, data: updated });
+    await category.save();
+
+    res.status(200).json({ success: true, data: note });
   } catch (error) {
-    console.error('Error updating material:', error);
+    console.error('Error updating note:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// DELETE
-export const deleteMaterial = async (req, res) => {
+// DELETE A NOTE
+export const deleteExamNotes = async (req, res) => {
   try {
-    const material = await StudyMaterial.findById(req.params.id);
+    const { categoryId, noteId } = req.params;
+    const category = await StudyMaterial.findById(categoryId);
 
-    if (!material) return res.status(404).json({ success: false, message: 'Material not found' });
+    if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
 
-    // Delete file from Cloudinary
-    if (material.publicId) {
-      await cloudinary.uploader.destroy(material.publicId, { resource_type: 'raw' });
+    const note = category.notes.id(noteId);
+    if (!note) return res.status(404).json({ success: false, message: 'Note not found' });
+
+    // Delete from Cloudinary
+    if (note.publicId) {
+      await cloudinary.uploader.destroy(note.publicId, { resource_type: 'raw' });
     }
 
-    await material.deleteOne();
+    note.deleteOne(); // remove from array
+    await category.save();
 
-    res.status(200).json({ success: true, message: 'Material deleted successfully' });
+    res.status(200).json({ success: true, message: 'Note deleted successfully' });
   } catch (error) {
+    console.error('Error deleting note:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
