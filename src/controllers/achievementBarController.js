@@ -3,20 +3,16 @@ import achievementModel from '../models/achievementBarModel.js';
 // Create
 export const createAchievement = async (req, res) => {
   try {
-    const { activeUser, satisfyUser, courses, passingRate } = req.body;
+    const { activeUser, satisfyUser, courses, passingRate, Instructors, alumni } = req.body;
     // console.log("Received Data:", req.body);
-
-    if (!activeUser || !satisfyUser || !courses || !passingRate) {
-      return res.status(400).json({
-        message: 'All fields are required.',
-      });
-    }
 
     const newAchievement = new achievementModel({
       activeUser,
       satisfyUser,
       courses,
       passingRate,
+      Instructors,
+      alumni,
     });
 
     const achievementAdded = await newAchievement.save();
