@@ -131,10 +131,7 @@
         "enrollLink": "https://classplusapp.com/",
         "image": "https://res.cloudinary.com/dt4ohfuwc/image/upload/v1760590837/Picture8_jxd8l0.png"
     },
-    
-]
-
-{
+    {
         "id": 10,
         "batchName": "TEJAS — Rajdhani Express Plus – RRB JE 2026 Foundation Batch",
         "syllabus": "Complete Non-Technical",
@@ -148,3 +145,7 @@
         "enrollLink": "https://classplusapp.com/",
         "image": "https://res.cloudinary.com/dt4ohfuwc/image/upload/v1760590838/Picture9_khn89v.png"
     }
+]
+
+
+ 
