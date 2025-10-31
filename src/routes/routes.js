@@ -77,6 +77,14 @@ import {
   getExamDetailsById,
   updateExamDetails,
 } from '../controllers/examDetailsController.js';
+import {
+  AllBlogController,
+  BlogController,
+  BlogImageController,
+  DeleteBlogController,
+  EditBlogController,
+  getBlogByIdController,
+} from '../controllers/blogControllers.js';
 
 const router = express.Router();
 
@@ -186,4 +194,14 @@ router.get('/exams/details', getAllExamsDetails);
 router.get('/exams/details/:id', getExamDetailsById);
 router.patch('/exams/details/update/:id', updateExamDetails);
 router.delete('/exams/details/delete/:id', deleteExamDetails);
+
+// ------------------------------------ Blog ------------------------------------
+
+router.post('/upload-image', upload.single('upload'), BlogImageController);
+router.post('/create-blogs', upload.single('featuredImage'), BlogController);
+router.get('/blogs', AllBlogController);
+router.get('/blogs/:id', getBlogByIdController);
+router.get('/blogs/update/:id', EditBlogController);
+router.get('/blogs/delete/:id', DeleteBlogController);
+
 export default router;
