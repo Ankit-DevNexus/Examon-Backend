@@ -1,22 +1,25 @@
 import mongoose from 'mongoose';
+import { type } from 'os';
 
 const achievementSchema = new mongoose.Schema(
   {
     activeUser: {
       type: Number,
-      required: true,
     },
     satisfyUser: {
       type: String,
-      required: true,
     },
     courses: {
       type: Number,
-      required: true,
     },
     passingRate: {
       type: Number,
-      required: true,
+    },
+    Instructors: {
+      type: Number,
+    },
+    alumni: {
+      type: Number,
     },
   },
   {

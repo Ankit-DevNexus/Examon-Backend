@@ -63,6 +63,20 @@ import {
   getPYQByPaperId,
   updateQuestionPaper,
 } from '../controllers/pyqController.js';
+import {
+  createInstructor,
+  deleteInstructor,
+  getAllInstructors,
+  getInstructorById,
+  updateInstructor,
+} from '../controllers/instructorController.js';
+import {
+  createExamDetails,
+  deleteExamDetails,
+  getAllExamsDetails,
+  getExamDetailsById,
+  updateExamDetails,
+} from '../controllers/examDetailsController.js';
 
 const router = express.Router();
 
@@ -129,14 +143,14 @@ router.post('/quizzes/:id/submit', Authenticate, submitQuiz);
 router.get('/profile/quizzes', Authenticate, authorize('user'), getUserQuizHistory);
 router.get('/user/attempts', Authenticate, authorize('user'), getUserQuizAttempts);
 
-// Exam notes
+// ------------------------Study material - Exam notes ---------------------------
 router.post('/notes/add', Authenticate, authorize('admin'), upload.single('notes'), createExamNotes);
 router.get('/notes/all', getAllExamNotes);
 router.get('/notes/:categoryId/:noteId', getExamNotesById);
 router.patch('/notes/updates/:categoryId/:noteId', updateExamNotes);
 router.delete('/notes/delete/:categoryId/:noteId', deleteExamNotes);
 
-// ------------------------------------ Live batches _________________
+// ------------------------------------ Live batches ------------------------------------
 // ROUTES
 router.post('/live/batches', Authenticate, upload.single('image'), addBatchToCategory); // add batch (and upload image)
 router.get('/live/batches', getAllCategories); // get all categories
@@ -157,4 +171,19 @@ router.patch('/pyq/update/:categoryId/:paperId', Authenticate, authorize('admin'
 router.delete('/pyq/delete/:categoryId/:paperId', deleteQuestionPaper);
 router.delete('/pyq/delete/:categoryId', deletePYQCategory);
 
+// ------------------------------------ Mentors/instructor ------------------------------------
+
+router.post('/mentors/create', Authenticate, upload.single('image'), createInstructor);
+router.get('/mentors', getAllInstructors);
+router.get('/mentors/:id', getInstructorById);
+router.patch('/mentors/update/:id', Authenticate, upload.single('image'), updateInstructor);
+router.delete('/mentors/delete/:id', Authenticate, deleteInstructor);
+
+// ------------------------------------ exam details ------------------------------------
+
+router.post('/exams/details', Authenticate, createExamDetails);
+router.get('/exams/details', getAllExamsDetails);
+router.get('/exams/details/:id', getExamDetailsById);
+router.patch('/exams/details/update/:id', updateExamDetails);
+router.delete('/exams/details/delete/:id', deleteExamDetails);
 export default router;
