@@ -10,10 +10,6 @@ const batchSchema = new mongoose.Schema(
     enrollLink: { type: String },
     image: { type: String },
     publicId: { type: String },
-    clientId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'user',
-    },
   },
   { timestamps: true },
 );

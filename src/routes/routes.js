@@ -47,11 +47,22 @@ import {
 import {
   addBatchToCategory,
   deleteBatch,
+  deleteBatchInsideCategory,
   deleteCategory,
   getAllCategories,
   getBatchesByCategory,
+  getSingleBatch,
   updateBatch,
 } from '../controllers/liveBatchController.js';
+import {
+  addQuestionPaper,
+  deletePYQCategory,
+  deleteQuestionPaper,
+  getAllPYQs,
+  getPYQByCategory,
+  getPYQByPaperId,
+  updateQuestionPaper,
+} from '../controllers/pyqController.js';
 
 const router = express.Router();
 
@@ -127,10 +138,23 @@ router.delete('/notes/delete/:categoryId/:noteId', deleteExamNotes);
 
 // ------------------------------------ Live batches _________________
 // ROUTES
-router.post('/live/batches', upload.single('image'), addBatchToCategory); // add batch (and upload image)
+router.post('/live/batches', Authenticate, upload.single('image'), addBatchToCategory); // add batch (and upload image)
 router.get('/live/batches', getAllCategories); // get all categories
 router.get('/live/batches/:categoryId', getBatchesByCategory); // get one category’s batches
-router.patch('/live/batches/:categoryId/:batchId', upload.single('image'), updateBatch); // update batch
-router.delete('/live/batches/:categoryId/:batchId', deleteBatch); // delete batch
-router.delete('/live/batches/:categoryId', deleteCategory); // delete category
+router.get('/live/batches/:categoryId/:batchId', getSingleBatch); // get one category’s batches
+router.patch('/live/batches/update/:categoryId/:batchId', Authenticate, authorize('admin'), upload.single('image'), updateBatch); // update batch
+router.delete('/live/batches/delete/:categoryId/:batchId', Authenticate, authorize('admin'), deleteBatch); // delete batch
+router.delete('/live/batches/delete/:categoryId', Authenticate, authorize('admin'), deleteCategory); // delete category
+
+// ------------------------------------ PYQ ------------------------------------
+
+// Routes
+router.post('/pyq/add', Authenticate, authorize('admin'), upload.single('pdf'), addQuestionPaper);
+router.get('/pyq/', getAllPYQs);
+router.get('/pyq/:categoryId', getPYQByCategory);
+router.get('/pyq/:categoryId/:paperId', getPYQByPaperId);
+router.patch('/pyq/update/:categoryId/:paperId', Authenticate, authorize('admin'), upload.single('pdf'), updateQuestionPaper);
+router.delete('/pyq/delete/:categoryId/:paperId', deleteQuestionPaper);
+router.delete('/pyq/delete/:categoryId', deletePYQCategory);
+
 export default router;
