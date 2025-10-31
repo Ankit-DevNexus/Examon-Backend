@@ -11,7 +11,6 @@ export const createExamDetails = async (req, res) => {
 };
 
 // Get All Exams
-// ✅ Get All Exams with Pagination
 export const getAllExamsDetails = async (req, res) => {
   try {
     // Extract pagination parameters from query
@@ -80,10 +79,17 @@ export const updateExamDetails = async (req, res) => {
 //  Delete Exam
 export const deleteExamDetails = async (req, res) => {
   try {
-    const deleted = await ExamModel.findByIdAndDelete({ id: req.params.id });
+    const { id } = req.params;
+    const deleted = await ExamModel.findByIdAndDelete(id);
+
     if (!deleted) return res.status(404).json({ success: false, message: 'Exam not found' });
+
     res.status(200).json({ success: true, message: 'Exam deleted successfully' });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error deleting exam', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting exam',
+      error: error.message,
+    });
   }
 };
