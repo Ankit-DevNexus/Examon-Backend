@@ -99,12 +99,10 @@ export const BlogImageController = async (req, res) => {
     console.log('localPath', localPath);
 
     // Upload to Cloudinary
-    const result = await cloudinary.uploader.upload(localPath, {
-      folder: 'blogs',
-    });
-
-    // Remove local file after upload
-    fs.unlinkSync(localPath);
+    const uploadedImage = await uploadOnCloudinary(localPath, 'blog_images');
+    if (!uploadedImage) {
+      return res.status(500).json({ success: false, message: 'Image upload failed' });
+    }
 
     res.status(200).json({ url: result.secure_url });
   } catch (error) {

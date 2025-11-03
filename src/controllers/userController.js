@@ -50,7 +50,7 @@ export const login = async (req, res) => {
     if (!isMatch) return res.status(401).json({ msg: 'Invalid credentials' });
 
     //  Generate Access & Refresh tokens
-    const { accessToken, refreshToken } = generateToken(user._id);
+    const { accessToken, refreshToken, expiresIn } = generateToken(user);
 
     //  Save refresh token in DB
     user.refreshToken = refreshToken;
@@ -67,6 +67,7 @@ export const login = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
+      path: '/api/refresh',
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
 
@@ -103,6 +104,7 @@ export const login = async (req, res) => {
     res.status(200).json({
       message: 'Login successful',
       accessToken,
+      expiresIn,
       user: {
         ...userData,
         attemptedQuizzes: detailedAttempts,
@@ -123,16 +125,17 @@ export const refreshAccessToken = async (req, res) => {
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
     const user = await userModel.findById(decoded.id);
 
-    if (!user || user.refreshToken !== refreshToken) {
-      return res.status(403).json({ msg: 'Invalid refresh token' });
+    if (!user || user.refreshToken !== refreshToken || user.tokenVersion !== decoded.tokenVersion) {
+      return res.status(403).json({ msg: 'Invalid or revoked refresh token' });
     }
+    const expiresIn = 15 * 60;
 
     //  Generate a new short-lived access token
     const newAccessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '1d',
+      expiresIn,
     });
 
-    res.json({ accessToken: newAccessToken });
+    res.json({ accessToken: newAccessToken, expiresIn });
   } catch (err) {
     res.status(401).json({ msg: 'Refresh token invalid or expired', error: err.message });
   }
@@ -144,10 +147,11 @@ export const logout = async (req, res) => {
     const user = await userModel.findById(req.user._id);
     if (user) {
       user.refreshToken = null;
+      user.tokenVersion += 1;
       await user.save();
     }
 
-    res.clearCookie('refreshToken');
+    res.clearCookie('refreshToken', { path: '/api/refresh' });
     res.json({ msg: 'Logged out successfully' });
   } catch (err) {
     res.status(500).json({ msg: 'Logout failed', error: err.message });

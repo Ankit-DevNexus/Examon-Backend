@@ -2,9 +2,10 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 
 const userSchema = new mongoose.Schema({
-  fullname: String,
-  email: String,
-  password: String,
+  fullname: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+
   role: {
     type: String,
     enum: ['admin', 'user'],
@@ -19,6 +20,7 @@ const userSchema = new mongoose.Schema({
     },
   ],
   refreshToken: String,
+  tokenVersion: { type: Number, default: 0 },
 });
 
 // Hash password before saving
