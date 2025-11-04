@@ -13,7 +13,6 @@ export const Authenticate = async (req, res, next) => {
     const user = await userModel.findById(decoded.id).lean();
 
     if (!user) return res.status(401).json({ msg: 'Invalid user' });
-
     req.user = { _id: user._id, email: user.email, role: user.role };
 
     next();
