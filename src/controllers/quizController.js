@@ -98,23 +98,22 @@ export const deleteQuiz = async (req, res) => {
 };
 
 // Submit quiz and calculate score
+
 export const submitQuiz = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user._id; // coming from middleware (auth)
     const { answers } = req.body;
     const quizId = req.params.id;
 
-    const quiz = await quizModel.findById(quizId).lean();
+    const quiz = await quizModel.findOne({ id: quizId }).lean();
     if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
 
-    // Compute score and detailed answers
+    // Calculate score
     let score = 0;
     const detailedAnswers = quiz.questions.map((ques) => {
       const userAnswer = answers.find((ans) => ans.questionId === ques.id);
       const isCorrect = userAnswer && userAnswer.selectedIndex === ques.correctAnswerIndex;
-
       if (isCorrect) score += ques.marks;
-
       return {
         questionId: ques.id,
         question: ques.question,
@@ -123,13 +122,16 @@ export const submitQuiz = async (req, res) => {
         correctAnswerIndex: ques.correctAnswerIndex,
         isCorrect,
         marks: ques.marks,
+        topic: ques.topic,
       };
     });
 
+    // Check if user has already attempted the quiz
     const existingAttempt = await QuizAttemptModel.findOne({ userId, quizId });
 
     if (existingAttempt) {
       if (score > existingAttempt.score) {
+        // Update only if the new score is higher
         existingAttempt.score = score;
         existingAttempt.answers = detailedAnswers;
         existingAttempt.totalMarks = quiz.totalMarks;
@@ -137,23 +139,26 @@ export const submitQuiz = async (req, res) => {
         await existingAttempt.save();
 
         return res.status(200).json({
-          message: 'Higher score updated successfully!',
+          message: 'Quiz reattempt recorded — new higher score updated!',
           score,
           totalMarks: quiz.totalMarks,
+          detailedAnswers,
           questions: quiz.questions,
-          answers: detailedAnswers,
         });
       } else {
+        // Keep old score if new one is not higher
         return res.status(200).json({
-          message: 'Already attempted with higher or equal score.',
+          message: 'Quiz already attempted — new score is lower, so not updated.',
           previousScore: existingAttempt.score,
+          newScore: score,
+          totalMarks: quiz.totalMarks,
+          detailedAnswers: existingAttempt.answers,
           questions: quiz.questions,
-          answers: existingAttempt.answers,
         });
       }
     }
 
-    // First attempt
+    // Create a new attempt if user is attempting for the first time
     await QuizAttemptModel.create({
       userId,
       quizId,
@@ -162,82 +167,18 @@ export const submitQuiz = async (req, res) => {
       totalMarks: quiz.totalMarks,
     });
 
-    return res.status(200).json({
+    res.status(200).json({
       message: 'Quiz submitted successfully',
       score,
       totalMarks: quiz.totalMarks,
+      detailedAnswers,
       questions: quiz.questions,
-      answers: detailedAnswers,
     });
   } catch (error) {
     console.error('Error submitting quiz:', error);
     res.status(500).json({ message: 'Error submitting quiz', error });
   }
 };
-
-// export const submitQuiz = async (req, res) => {
-//   try {
-//     const userId = req.user._id;
-//     const { answers } = req.body;
-//     const quizId = req.params.id;
-
-//     const quiz = await quizModel.findById(quizId).lean();
-//     if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
-
-//     // Compute score and minimal answer data
-//     let score = 0;
-//     const detailedAnswers = quiz.questions.map((ques) => {
-//       const userAnswer = answers.find((ans) => ans.questionId === ques.id);
-//       const isCorrect = userAnswer && userAnswer.selectedIndex === ques.correctAnswerIndex;
-//       if (isCorrect) score += ques.marks;
-//       return {
-//         questionId: ques.id,
-//         selectedIndex: userAnswer ? userAnswer.selectedIndex : null,
-//         correctAnswerIndex: ques.correctAnswerIndex,
-//         isCorrect,
-//       };
-//     });
-
-//     const existingAttempt = await QuizAttemptModel.findOne({ userId, quizId });
-
-//     if (existingAttempt) {
-//       if (score > existingAttempt.score) {
-//         existingAttempt.score = score;
-//         existingAttempt.answers = detailedAnswers;
-//         existingAttempt.totalMarks = quiz.totalMarks;
-//         existingAttempt.attemptedAt = new Date();
-//         await existingAttempt.save();
-//         return res.status(200).json({
-//           message: 'Higher score updated successfully!',
-//           score,
-//           totalMarks: quiz.totalMarks,
-//         });
-//       } else {
-//         return res.status(200).json({
-//           message: 'Already attempted with higher or equal score.',
-//           previousScore: existingAttempt.score,
-//         });
-//       }
-//     }
-
-//     await QuizAttemptModel.create({
-//       userId,
-//       quizId,
-//       answers: detailedAnswers,
-//       score,
-//       totalMarks: quiz.totalMarks,
-//     });
-
-//     res.status(200).json({
-//       message: 'Quiz submitted successfully',
-//       score,
-//       totalMarks: quiz.totalMarks,
-//     });
-//   } catch (error) {
-//     console.error('Error submitting quiz:', error);
-//     res.status(500).json({ message: 'Error submitting quiz', error });
-//   }
-// };
 
 // export const submitQuiz = async (req, res) => {
 //   try {
@@ -256,9 +197,13 @@ export const submitQuiz = async (req, res) => {
 //       if (isCorrect) score += ques.marks;
 //       return {
 //         questionId: ques.id,
+//         question: ques.question,
+//         options: ques.options,
 //         selectedIndex: userAnswer ? userAnswer.selectedIndex : null,
 //         correctAnswerIndex: ques.correctAnswerIndex,
 //         isCorrect,
+//         marks: ques.marks,
+//         topic: ques.topic,
 //       };
 //     });
 
@@ -278,6 +223,8 @@ export const submitQuiz = async (req, res) => {
 //           message: 'Quiz reattempt recorded — new higher score updated!',
 //           score,
 //           totalMarks: quiz.totalMarks,
+//           detailedAnswers,
+//           questions: quiz.questions,
 //         });
 //       } else {
 //         // Keep old score if new one is not higher
@@ -286,6 +233,8 @@ export const submitQuiz = async (req, res) => {
 //           previousScore: existingAttempt.score,
 //           newScore: score,
 //           totalMarks: quiz.totalMarks,
+//           detailedAnswers: existingAttempt.answers,
+//           questions: quiz.questions,
 //         });
 //       }
 //     }
@@ -303,6 +252,8 @@ export const submitQuiz = async (req, res) => {
 //       message: 'Quiz submitted successfully',
 //       score,
 //       totalMarks: quiz.totalMarks,
+//       detailedAnswers,
+//       questions: quiz.questions,
 //     });
 //   } catch (error) {
 //     console.error('Error submitting quiz:', error);
