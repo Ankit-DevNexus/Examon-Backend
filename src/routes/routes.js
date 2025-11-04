@@ -125,6 +125,7 @@ router.patch('/news/update/:id', Authenticate, authorize('admin'), upload.single
 router.delete('/news/delete/:id', Authenticate, authorize('admin'), deleteImageContent);
 
 // --------------------------- Courses ----------------------------
+
 router.post('/course/create', Authenticate, authorize('admin'), upload.single('img'), createCourseOffer);
 router.get('/course/all', getAllCourseOffers);
 router.get('/course/:categoryId/:courseId', getCourseOfferById);

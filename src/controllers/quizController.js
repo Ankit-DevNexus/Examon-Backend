@@ -104,7 +104,7 @@ export const submitQuiz = async (req, res) => {
     const { answers } = req.body;
     const quizId = req.params.id;
 
-    const quiz = await quizModel.findOne({ id: quizId }).lean();
+    const quiz = await quizModel.findById(quizId).lean();
     if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
 
     // Compute score and minimal answer data
