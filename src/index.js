@@ -23,7 +23,7 @@ app.use(
         callback(new Error('Not allowed by CORS: ' + origin));
       }
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // allow preflight
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // allow preflight
     allowedHeaders: ['Content-Type', 'Authorization'], // allow custom headers
     credentials: true,
   }),

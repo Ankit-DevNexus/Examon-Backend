@@ -107,17 +107,22 @@ export const submitQuiz = async (req, res) => {
     const quiz = await quizModel.findById(quizId).lean();
     if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
 
-    // Compute score and minimal answer data
+    // Compute score and detailed answers
     let score = 0;
     const detailedAnswers = quiz.questions.map((ques) => {
       const userAnswer = answers.find((ans) => ans.questionId === ques.id);
       const isCorrect = userAnswer && userAnswer.selectedIndex === ques.correctAnswerIndex;
+
       if (isCorrect) score += ques.marks;
+
       return {
         questionId: ques.id,
+        question: ques.question,
+        options: ques.options,
         selectedIndex: userAnswer ? userAnswer.selectedIndex : null,
         correctAnswerIndex: ques.correctAnswerIndex,
         isCorrect,
+        marks: ques.marks,
       };
     });
 
@@ -130,19 +135,25 @@ export const submitQuiz = async (req, res) => {
         existingAttempt.totalMarks = quiz.totalMarks;
         existingAttempt.attemptedAt = new Date();
         await existingAttempt.save();
+
         return res.status(200).json({
           message: 'Higher score updated successfully!',
           score,
           totalMarks: quiz.totalMarks,
+          questions: quiz.questions,
+          answers: detailedAnswers,
         });
       } else {
         return res.status(200).json({
           message: 'Already attempted with higher or equal score.',
           previousScore: existingAttempt.score,
+          questions: quiz.questions,
+          answers: existingAttempt.answers,
         });
       }
     }
 
+    // First attempt
     await QuizAttemptModel.create({
       userId,
       quizId,
@@ -151,16 +162,82 @@ export const submitQuiz = async (req, res) => {
       totalMarks: quiz.totalMarks,
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       message: 'Quiz submitted successfully',
       score,
       totalMarks: quiz.totalMarks,
+      questions: quiz.questions,
+      answers: detailedAnswers,
     });
   } catch (error) {
     console.error('Error submitting quiz:', error);
     res.status(500).json({ message: 'Error submitting quiz', error });
   }
 };
+
+// export const submitQuiz = async (req, res) => {
+//   try {
+//     const userId = req.user._id;
+//     const { answers } = req.body;
+//     const quizId = req.params.id;
+
+//     const quiz = await quizModel.findById(quizId).lean();
+//     if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
+
+//     // Compute score and minimal answer data
+//     let score = 0;
+//     const detailedAnswers = quiz.questions.map((ques) => {
+//       const userAnswer = answers.find((ans) => ans.questionId === ques.id);
+//       const isCorrect = userAnswer && userAnswer.selectedIndex === ques.correctAnswerIndex;
+//       if (isCorrect) score += ques.marks;
+//       return {
+//         questionId: ques.id,
+//         selectedIndex: userAnswer ? userAnswer.selectedIndex : null,
+//         correctAnswerIndex: ques.correctAnswerIndex,
+//         isCorrect,
+//       };
+//     });
+
+//     const existingAttempt = await QuizAttemptModel.findOne({ userId, quizId });
+
+//     if (existingAttempt) {
+//       if (score > existingAttempt.score) {
+//         existingAttempt.score = score;
+//         existingAttempt.answers = detailedAnswers;
+//         existingAttempt.totalMarks = quiz.totalMarks;
+//         existingAttempt.attemptedAt = new Date();
+//         await existingAttempt.save();
+//         return res.status(200).json({
+//           message: 'Higher score updated successfully!',
+//           score,
+//           totalMarks: quiz.totalMarks,
+//         });
+//       } else {
+//         return res.status(200).json({
+//           message: 'Already attempted with higher or equal score.',
+//           previousScore: existingAttempt.score,
+//         });
+//       }
+//     }
+
+//     await QuizAttemptModel.create({
+//       userId,
+//       quizId,
+//       answers: detailedAnswers,
+//       score,
+//       totalMarks: quiz.totalMarks,
+//     });
+
+//     res.status(200).json({
+//       message: 'Quiz submitted successfully',
+//       score,
+//       totalMarks: quiz.totalMarks,
+//     });
+//   } catch (error) {
+//     console.error('Error submitting quiz:', error);
+//     res.status(500).json({ message: 'Error submitting quiz', error });
+//   }
+// };
 
 // export const submitQuiz = async (req, res) => {
 //   try {
