@@ -95,6 +95,8 @@ export const getSingleBatch = async (req, res) => {
 export const updateBatch = async (req, res) => {
   try {
     const { categoryId, batchId } = req.params;
+    console.log('Req', req.body);
+
     const category = await liveBatchModel.findById(categoryId);
     if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
 
@@ -103,7 +105,7 @@ export const updateBatch = async (req, res) => {
 
     // Update image if a new one is uploaded
     if (req.file) {
-      const imageUrl = await uploadOnCloudinary(req.file.path);
+      const imageUrl = await uploadOnCloudinary(req.file.path, 'Batch_images');
       batch.image = imageUrl;
     }
 

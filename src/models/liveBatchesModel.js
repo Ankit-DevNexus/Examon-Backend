@@ -17,7 +17,7 @@ const batchSchema = new mongoose.Schema(
 // category that holds many courses
 const batchesCategorySchema = new mongoose.Schema(
   {
-    batchCategory: { type: String, unique: true },
+    batchCategory: { type: String, unique: true, lowercase: true },
     batches: [batchSchema],
   },
   { timestamps: true },
