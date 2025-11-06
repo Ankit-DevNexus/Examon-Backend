@@ -106,7 +106,13 @@ export const updateBatch = async (req, res) => {
     // Update image if a new one is uploaded
     if (req.file) {
       const imageUrl = await uploadOnCloudinary(req.file.path, 'Batch_images');
-      batch.image = imageUrl;
+      //   console.log('imageUrl', imageUrl);
+
+      if (imageUrl.url) {
+        batch.image = imageUrl.url;
+        batch.publicId = imageUrl.public_id;
+        await deleteFromCloudinary(batch.publicId);
+      }
     }
 
     const updatableFields = ['batchName', 'syllabus', 'duration', 'price', 'teachers', 'enrollLink'];
