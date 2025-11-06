@@ -47,7 +47,6 @@ import {
 import {
   addBatchToCategory,
   deleteBatch,
-  deleteBatchInsideCategory,
   deleteCategory,
   getAllCategories,
   getBatchesByCategory,
@@ -76,6 +75,7 @@ import {
   getAllExamsDetails,
   getExamDetailsById,
   updateExamDetails,
+  uploadImageController,
 } from '../controllers/examDetailsController.js';
 import {
   AllBlogController,
@@ -85,6 +85,7 @@ import {
   EditBlogController,
   getBlogByIdController,
 } from '../controllers/blogControllers.js';
+import { totalCountController } from '../controllers/AllRecordsController.js';
 
 const router = express.Router();
 
@@ -138,6 +139,7 @@ router.get('/subscribe', Authenticate, getAllSubscriber);
 router.delete('/subscribe', Authenticate, deleteSubscriber);
 
 // --------------------------- Quiz ----------------------------
+
 // Admin route to upload quiz
 router.post('/quizzes/upload', Authenticate, authorize('admin'), uploadQuiz);
 
@@ -153,6 +155,7 @@ router.get('/profile/quizzes', Authenticate, authorize('user'), getUserQuizHisto
 router.get('/user/attempts', Authenticate, authorize('user'), getUserQuizAttempts);
 
 // ------------------------Study material - Exam notes ---------------------------
+
 router.post('/notes/add', Authenticate, authorize('admin'), upload.single('notes'), createExamNotes);
 router.get('/notes/all', getAllExamNotes);
 router.get('/notes/:categoryId/:noteId', getExamNotesById);
@@ -190,19 +193,23 @@ router.delete('/mentors/delete/:id', Authenticate, deleteInstructor);
 
 // ------------------------------------ exam details ------------------------------------
 
+router.post('/upload-image', upload.single('upload'), uploadImageController);
 router.post('/exams/details', Authenticate, createExamDetails);
 router.get('/exams/details', getAllExamsDetails);
 router.get('/exams/details/:id', getExamDetailsById);
-router.patch('/exams/details/update/:id', updateExamDetails);
-router.delete('/exams/details/delete/:id', deleteExamDetails);
+router.patch('/exams/details/update/:id', Authenticate, updateExamDetails);
+router.delete('/exams/details/delete/:id', Authenticate, deleteExamDetails);
 
 // ------------------------------------ Blog ------------------------------------
 
 router.post('/upload-image', upload.single('upload'), BlogImageController);
-router.post('/create-blogs', upload.single('featuredImage'), BlogController);
+router.post('/create-blogs', Authenticate, upload.single('featuredImage'), BlogController);
 router.get('/blogs', AllBlogController);
 router.get('/blogs/:id', getBlogByIdController);
-router.get('/blogs/update/:id', EditBlogController);
-router.get('/blogs/delete/:id', DeleteBlogController);
+router.get('/blogs/update/:id', Authenticate, EditBlogController);
+router.get('/blogs/delete/:id', Authenticate, DeleteBlogController);
 
+// ------------------------------------ total count  ------------------------------------
+
+router.get('/totalcount', totalCountController);
 export default router;

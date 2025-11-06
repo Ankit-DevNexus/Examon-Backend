@@ -61,6 +61,7 @@ export const updateQuiz = async (req, res) => {
   try {
     const { id } = req.params;
     const updatedData = req.body;
+    console.log('updatedData', updatedData);
 
     const updatedQuiz = await quizModel.findByIdAndUpdate(id, updatedData, {
       new: true, // return updated document

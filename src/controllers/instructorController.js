@@ -1,11 +1,12 @@
 import InstructorModel from '../models/instructorModel.js';
 import { uploadOnCloudinary, deleteFromCloudinary } from '../utils/cloudinary.js';
-import fs from 'fs';
 
 // Create Instructor
 export const createInstructor = async (req, res) => {
   try {
     const { name, designation, experience, specialization, description, linkedin, coursesLink } = req.body;
+
+    // console.log('req.body', req.body);
 
     if (!req.file) return res.status(400).json({ success: false, message: 'Image is required' });
 

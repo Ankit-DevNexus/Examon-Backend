@@ -25,7 +25,7 @@ const CourseSchema = new mongoose.Schema(
 // category that holds many courses
 const CategorySchema = new mongoose.Schema(
   {
-    examCategory: { type: String, unique: true },
+    examCategory: { type: String, unique: true, lowercase: true },
     courses: [CourseSchema],
   },
   { timestamps: true },
