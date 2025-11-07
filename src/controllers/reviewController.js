@@ -70,7 +70,7 @@ export const createReview = async (req, res) => {
 
 export const getAllReview = async (req, res) => {
   try {
-    const allReviews = await ReviewModel.find().sort({ date: -1 });
+    const allReviews = await ReviewModel.find().sort({ createdAt: -1 });
 
     if (!allReviews || allReviews.length === 0) {
       return res.status(404).json({
