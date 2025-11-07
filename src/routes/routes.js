@@ -194,7 +194,7 @@ router.delete('/mentors/delete/:id', Authenticate, deleteInstructor);
 // ------------------------------------ exam details ------------------------------------
 
 router.post('/upload-image', upload.single('upload'), uploadImageController);
-router.post('/exams/details', Authenticate, createExamDetails);
+router.post('/exams/details', upload.none(), Authenticate, createExamDetails);
 router.get('/exams/details', getAllExamsDetails);
 router.get('/exams/details/:id', getExamDetailsById);
 router.patch('/exams/details/update/:id', Authenticate, updateExamDetails);

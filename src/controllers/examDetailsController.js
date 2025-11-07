@@ -7,6 +7,8 @@ export const createExamDetails = async (req, res) => {
     // console.log('req.file:', req.file);
 
     const { title, Content } = req.body;
+    console.log('req.body', req.body);
+
     const featuredImagePath = req.file?.path;
 
     if (!Content || !title) {
@@ -18,25 +20,20 @@ export const createExamDetails = async (req, res) => {
 
     const FeaturedImage = req.file?.path;
 
-    // if (!FeaturedImage) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: 'Blog image is missing',
-    //   });
-    // }
-
     let uploadedImage;
-    try {
-      uploadedImage = await uploadOnCloudinary(FeaturedImage);
-      console.log('Upload Image', uploadedImage);
-    } catch (error) {
-      console.log('Error uploading image to cloudinary', error);
-      return res.status(500).json({ success: false, message: 'Error uploading image to cloudinary' });
+    if (FeaturedImage) {
+      try {
+        uploadedImage = await uploadOnCloudinary(FeaturedImage);
+        console.log('Upload Image', uploadedImage);
+      } catch (error) {
+        console.log('Error uploading image to cloudinary', error);
+        return res.status(500).json({ success: false, message: 'Error uploading image to cloudinary' });
+      }
     }
     const newcontent = new ExamModel({
       title,
       Content,
-      featuredImage: uploadedImage.secure_url,
+      featuredImage: uploadedImage?.secure_url || '',
     });
 
     await newcontent.save();
