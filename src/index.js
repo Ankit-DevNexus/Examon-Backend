@@ -5,6 +5,7 @@ import express from 'express';
 import { ConnectDB } from './config/connectDB.js';
 import Routes from './routes/routes.js';
 import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
 
 const app = express();
 const PORT = process.env.PORT;
@@ -32,6 +33,9 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 app.get('/', (req, res) => {
   res.status(200).json({

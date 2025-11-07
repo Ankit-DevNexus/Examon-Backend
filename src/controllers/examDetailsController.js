@@ -34,6 +34,7 @@ export const createExamDetails = async (req, res) => {
       title,
       Content,
       featuredImage: uploadedImage?.secure_url || '',
+      publicId: uploadedImage.public_id,
     });
 
     await newcontent.save();
