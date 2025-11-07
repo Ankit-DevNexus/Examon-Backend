@@ -28,7 +28,7 @@ export const uploadQuiz = async (req, res) => {
 // Get all quizzes
 export const getAllQuizzes = async (req, res) => {
   try {
-    const quizzes = await quizModel.find({});
+    const quizzes = await quizModel.find({}).sort({ createdAt: -1 });
     res.status(200).json({
       totalQuiz: quizzes.length,
       quizzes,
@@ -106,16 +106,22 @@ export const submitQuiz = async (req, res) => {
     const { answers } = req.body;
     const quizId = req.params.id;
 
-    console.log('quizId', quizId);
+    // console.log('quizId', quizId);
 
     const quiz = await quizModel.findById(quizId).lean();
     if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
+    // console.log('quiz', quiz);
 
     // Calculate score
     let score = 0;
     const detailedAnswers = quiz.questions.map((ques) => {
+      // console.log('ques', ques);
       const userAnswer = answers.find((ans) => ans.questionId === ques.id);
+      // console.log('userAnswer', userAnswer);
+
       const isCorrect = userAnswer && userAnswer.selectedIndex === ques.correctAnswerIndex;
+      // console.log('isCorrect', isCorrect);
+
       if (isCorrect) score += ques.marks;
       return {
         questionId: ques.id,
@@ -277,14 +283,20 @@ export const getUserQuizAttempts = async (req, res) => {
   try {
     const userId = req.user._id; // from auth middleware
 
+    // console.log('userId', userId);
+
     // Fetch all attempts by the user
     const attempts = await QuizAttemptModel.find({ userId }).lean();
+    // console.log('attempts', attempts);
 
     // Optionally, include quiz title and question details
     const detailedAttempts = await Promise.all(
       attempts.map(async (attempt) => {
+        // console.log('attempt', attempt);
+
         const quiz = await quizModel.findOne({ id: attempt.quizId }).lean();
         if (!quiz) return attempt;
+        // console.log('quiz', quiz);
 
         return {
           userId: attempt.userId,

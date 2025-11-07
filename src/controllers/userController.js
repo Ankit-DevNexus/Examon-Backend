@@ -62,7 +62,7 @@ export const login = async (req, res) => {
     });
     await user.save();
 
-    //  Store refresh token in secure HTTP-only cookie
+    // Store refresh token in secure HTTP-only cookie
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -73,9 +73,13 @@ export const login = async (req, res) => {
 
     //  Fetch user quiz history (optional)
     const quizAttempts = await QuizAttemptModel.find({ userId: user._id }).lean();
+    // console.log('quizAttempts in login', quizAttempts);
+
     const detailedAttempts = await Promise.all(
       quizAttempts.map(async (attempt) => {
         const quiz = await quizModel.findOne({ id: attempt.quizId }).lean();
+        // console.log('quiz in login', quiz);
+
         if (!quiz) return attempt;
 
         return {
@@ -116,31 +120,6 @@ export const login = async (req, res) => {
   }
 };
 
-//  REFRESH ACCESS TOKEN
-export const refreshAccessToken = async (req, res) => {
-  try {
-    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
-    if (!refreshToken) return res.status(401).json({ msg: 'No refresh token provided' });
-
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-    const user = await userModel.findById(decoded.id);
-
-    if (!user || user.refreshToken !== refreshToken || user.tokenVersion !== decoded.tokenVersion) {
-      return res.status(403).json({ msg: 'Invalid or revoked refresh token' });
-    }
-    const expiresIn = 15 * 60;
-
-    //  Generate a new short-lived access token
-    const newAccessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn,
-    });
-
-    res.json({ accessToken: newAccessToken, expiresIn });
-  } catch (err) {
-    res.status(401).json({ msg: 'Refresh token invalid or expired', error: err.message });
-  }
-};
-
 //  LOGOUT
 export const logout = async (req, res) => {
   try {
@@ -167,3 +146,16 @@ export const deleteUsers = async (req, res) => {
     res.status(500).json({ msg: 'Error deleting users', error: error.message });
   }
 };
+
+// export const updateProfile = (async = (req, res) => {
+//   const { fullname, email, phone, password } = req.body;
+//   const { id } = req.params;
+
+//   if (!id) {
+//     return res.status(400).json({
+//       success: false,
+//       message: 'User not found',
+//     });
+//   }
+
+// });

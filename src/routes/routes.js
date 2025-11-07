@@ -1,5 +1,5 @@
-import express, { Router } from 'express';
-import { deleteUsers, login, logout, refreshAccessToken, signup } from '../controllers/userController.js';
+import express from 'express';
+import { deleteUsers, login, logout, signup } from '../controllers/userController.js';
 import { ContactUsController } from '../controllers/contactusController.js';
 import upload from '../middleware/multerMiddleware.js';
 import { createReview, deleteReview, getAllReview, updateReview } from '../controllers/reviewController.js';
@@ -91,7 +91,6 @@ const router = express.Router();
 // Admin
 router.post('/admin/signup', adminSignup);
 router.post('/admin/signin', adminLogin);
-router.post('/refresh', refreshAccessToken);
 router.post('/logout', Authenticate, logout);
 
 // client (users)
