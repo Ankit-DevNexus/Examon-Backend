@@ -36,8 +36,9 @@ const ReviewSchema = new mongoose.Schema(
       required: true,
     },
     status: {
-      type: Boolean,
-      default: false,
+      type: String,
+      ENUM: ['approved', 'reject', 'pending'],
+      default: 'pending',
     },
   },
   {

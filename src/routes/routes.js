@@ -80,7 +80,6 @@ import {
 import {
   AllBlogController,
   BlogController,
-  BlogImageController,
   DeleteBlogController,
   EditBlogController,
   getBlogByIdController,
@@ -202,7 +201,7 @@ router.delete('/exams/details/delete/:id', Authenticate, deleteExamDetails);
 
 // ------------------------------------ Blog ------------------------------------
 
-router.post('/upload-image', upload.single('upload'), BlogImageController);
+// router.post('/upload-image', upload.single('upload'), BlogImageController);
 router.post('/create-blogs', Authenticate, upload.single('featuredImage'), BlogController);
 router.get('/blogs', AllBlogController);
 router.get('/blogs/:id', getBlogByIdController);
