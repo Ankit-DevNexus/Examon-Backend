@@ -54,8 +54,12 @@ export const addBatchToCategory = async (req, res) => {
 //Get all categories with batches
 export const getAllCategories = async (req, res) => {
   try {
-    const categories = await liveBatchModel.find();
-    res.status(200).json({ success: true, categories });
+    const categories = await liveBatchModel.find().sort({ createdAt: -1 });
+    res.status(200).json({
+      success: true,
+      totalCategory: categories.length,
+      categories,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error fetching categories', error: error.message });
   }
@@ -147,7 +151,15 @@ export const deleteBatch = async (req, res) => {
 export const deleteCategory = async (req, res) => {
   try {
     const { categoryId } = req.params;
-    await liveBatchModel.findByIdAndDelete(categoryId);
+    const category = await liveBatchModel.findByIdAndDelete(categoryId);
+
+    // console.log('category', category);
+
+    // console.log('category with batches', category.batches);
+
+    const allPublicId = category.batches.map((item) => deleteFromCloudinary(item?.publicId));
+    // console.log('allPublicId', allPublicId);
+
     res.status(200).json({ success: true, message: 'Category deleted successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error deleting category', error: error.message });
@@ -159,19 +171,19 @@ export const deleteBatchInsideCategory = async (req, res) => {
   try {
     const { categoryId, batchId } = req.params;
 
-    //  Find the category by name
+    // Find the category
     const category = await liveBatchModel.findById(categoryId);
     if (!category) {
       return res.status(404).json({ success: false, message: 'Category not found' });
     }
 
-    //  Find the batch inside that category
+    // Find the batch inside that category
     const batch = category.batches.id(batchId);
     if (!batch) {
       return res.status(404).json({ success: false, message: 'Batch not found in this category' });
     }
 
-    // Delete image from Cloudinary (optional)
+    // Delete image from Cloudinary
     if (batch.publicId) {
       try {
         await deleteFromCloudinary(batch.publicId);
@@ -180,10 +192,22 @@ export const deleteBatchInsideCategory = async (req, res) => {
       }
     }
 
-    //  Remove the batch from the array
+    // Remove batch from array
     batch.deleteOne();
 
-    //  Save the updated category
+    // If this was the last batch → delete the whole category
+    if (category.batches.length === 0) {
+      // (It’s 1 because we haven’t saved yet, and this batch still counts until we do)
+      await liveBatchModel.findByIdAndDelete(categoryId);
+      // console.log('catID', catID);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Batch deleted successfully and category removed as it has no batches left',
+      });
+    }
+
+    // Otherwise, just save the updated category
     await category.save();
 
     res.status(200).json({

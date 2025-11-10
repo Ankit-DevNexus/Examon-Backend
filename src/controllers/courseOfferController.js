@@ -1,6 +1,5 @@
 import CourseOfferModel from '../models/CourseOfferModel.js';
 import { uploadOnCloudinary } from '../utils/cloudinary.js';
-import { v2 as cloudinary } from 'cloudinary';
 import { notifySubscribers } from '../utils/notifySubscribers.js';
 
 //  CREATE
@@ -154,7 +153,6 @@ export const getCourseOfferById = async (req, res) => {
 };
 
 //  UPDATE
-
 // export const updateCourseOffer = async (req, res) => {
 //   try {
 //     const { id } = req.params;

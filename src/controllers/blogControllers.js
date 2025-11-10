@@ -38,7 +38,7 @@ export const BlogController = async (req, res) => {
 
     let uploadedImage;
     try {
-      uploadedImage = await uploadOnCloudinary(BlogFeaturedImage);
+      uploadedImage = await uploadOnCloudinary(BlogFeaturedImage, 'course_images');
 
       console.log('Upload Image', uploadedImage);
     } catch (error) {
@@ -126,15 +126,12 @@ export const EditBlogController = async (req, res) => {
     if (!existingBlog) {
       return res.status(404).json({ success: false, message: 'Blog not found' });
     }
+
     console.log('Uploaded File:', req.file);
 
     const updateFields = {};
     if (title?.trim()) updateFields.title = title.trim();
     if (blogContent?.trim()) updateFields.blogContent = blogContent.trim();
-
-    // if (Object.keys(updateFields).length === 0) {
-    //   return res.status(400).json({ success: false, message: "No valid fields to update" });
-    // }
 
     if (req.file) {
       const newImagePath = req.file.path;
@@ -151,12 +148,9 @@ export const EditBlogController = async (req, res) => {
       // Upload new image to Cloudinary
       const uploadedImage = await uploadOnCloudinary(newImagePath);
       if (uploadedImage) {
-        updatedData.profilePicture = uploadedImage.url;
-        updatedData.publicId = uploadedImage.public_id;
+        updateFields.featuredImage = uploadedImage.url;
+        updateFields.publicId = uploadedImage.public_id;
       }
-
-      // Delete local file
-      fs.unlinkSync(newImagePath);
     }
 
     const updatedBlog = await blogModel.findByIdAndUpdate(id, updateFields, { new: true });

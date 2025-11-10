@@ -1,13 +1,13 @@
-import jwt from 'jsonwebtoken';
 import { generateToken } from '../config/jwt.js';
 import QuizAttemptModel from '../models/QuizAttemptModel.js';
 import quizModel from '../models/QuizModel.js';
 import userModel from '../models/userModel.js';
+import profileModel from '../models/ProfileModel.js';
 
 //  USER SIGNUP
 export const signup = async (req, res) => {
   try {
-    const { fullname, email, password, role } = req.body;
+    const { fullname, email, password, role, phone } = req.body;
 
     if (!fullname || !email || !password) {
       return res.status(400).json({ msg: 'All fields are required' });
@@ -18,11 +18,21 @@ export const signup = async (req, res) => {
       return res.status(400).json({ msg: 'Email already exists' });
     }
 
+    // Create new user
     const newUser = await userModel.create({
       fullname,
       email,
       password,
       role: role || 'user',
+    });
+
+    // Initialize an empty profile for the user
+    await profileModel.create({
+      publicId: '',
+      userId: newUser._id,
+      profileImage: '',
+      phone,
+      preferedCourse: '',
     });
 
     res.status(201).json({
@@ -38,8 +48,50 @@ export const signup = async (req, res) => {
     res.status(500).json({ msg: 'Error creating user', error: error.message });
   }
 };
+// export const signup = async (req, res) => {
+//   try {
+//     const { fullname, email, password, role } = req.body;
+
+//     if (!fullname || !email || !password) {
+//       return res.status(400).json({ msg: 'All fields are required' });
+//     }
+
+//     const existingUser = await userModel.findOne({ email });
+//     if (existingUser) {
+//       return res.status(400).json({ msg: 'Email already exists' });
+//     }
+
+//     const newUser = await userModel.create({
+//       fullname,
+//       email,
+//       password,
+//       role: role || 'user',
+//     });
+
+//     await profileModel.create({
+//       publicId: '',
+//       userId: req.user._id || '',
+//       profileImage: '',
+//       phone: '',
+//       preferedCourse: '',
+//     });
+
+//     res.status(201).json({
+//       message: 'User created successfully',
+//       user: {
+//         _id: newUser._id,
+//         fullname: newUser.fullname,
+//         email: newUser.email,
+//         role: newUser.role,
+//       },
+//     });
+//   } catch (error) {
+//     res.status(500).json({ msg: 'Error creating user', error: error.message });
+//   }
+// };
 
 //  USER LOGIN
+
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -49,10 +101,10 @@ export const login = async (req, res) => {
     const isMatch = await user.comparePassword(password);
     if (!isMatch) return res.status(401).json({ msg: 'Invalid credentials' });
 
-    //  Generate Access & Refresh tokens
+    // Generate tokens
     const { accessToken, refreshToken, expiresIn } = generateToken(user);
 
-    //  Save refresh token in DB
+    // Update user login info
     user.refreshToken = refreshToken;
     user.lastLogin = new Date();
     user.loginHistory.push({
@@ -62,7 +114,7 @@ export const login = async (req, res) => {
     });
     await user.save();
 
-    // Store refresh token in secure HTTP-only cookie
+    // Store refresh token in cookie
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -71,15 +123,15 @@ export const login = async (req, res) => {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
 
-    //  Fetch user quiz history (optional)
+    // Fetch profile data linked to user
+    const profile = await profileModel.findOne({ userId: user._id }).lean();
+
+    // Optional: Fetch quiz attempts
     const quizAttempts = await QuizAttemptModel.find({ userId: user._id }).lean();
-    // console.log('quizAttempts in login', quizAttempts);
 
     const detailedAttempts = await Promise.all(
       quizAttempts.map(async (attempt) => {
         const quiz = await quizModel.findOne({ id: attempt.quizId }).lean();
-        // console.log('quiz in login', quiz);
-
         if (!quiz) return attempt;
 
         return {
@@ -88,20 +140,11 @@ export const login = async (req, res) => {
           score: attempt.score,
           totalMarks: attempt.totalMarks,
           attemptedAt: attempt.attemptedAt,
-          answers: attempt.answers.map((ans) => {
-            const q = quiz.questions.find((qq) => qq.id === ans.questionId);
-            return {
-              question: q ? q.question : 'Question not found',
-              options: q ? q.options : [],
-              selectedIndex: ans.selectedIndex,
-              correctAnswerIndex: ans.correctAnswerIndex,
-              isCorrect: ans.isCorrect,
-            };
-          }),
         };
       }),
     );
 
+    // Build final response
     const userData = user.toObject();
     delete userData.password;
 
@@ -110,7 +153,13 @@ export const login = async (req, res) => {
       accessToken,
       expiresIn,
       user: {
-        ...userData,
+        _id: user._id,
+        fullname: user.fullname,
+        email: user.email,
+        role: user.role,
+        phone: profile?.phone || '',
+        profileImage: profile?.profileImage || '',
+        preferedCourse: profile?.preferedCourse || '',
         attemptedQuizzes: detailedAttempts,
       },
     });
@@ -120,7 +169,88 @@ export const login = async (req, res) => {
   }
 };
 
+// export const login = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+//     const user = await userModel.findOne({ email });
+//     if (!user) return res.status(400).json({ msg: 'User not found' });
+
+//     const isMatch = await user.comparePassword(password);
+//     if (!isMatch) return res.status(401).json({ msg: 'Invalid credentials' });
+
+//     //  Generate Access & Refresh tokens
+//     const { accessToken, refreshToken, expiresIn } = generateToken(user);
+
+//     //  Save refresh token in DB
+//     user.refreshToken = refreshToken;
+//     user.lastLogin = new Date();
+//     user.loginHistory.push({
+//       loginAt: user.lastLogin,
+//       ip: req.ip,
+//       userAgent: req.headers['user-agent'],
+//     });
+//     await user.save();
+
+//     // Store refresh token in secure HTTP-only cookie
+//     res.cookie('refreshToken', refreshToken, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === 'production',
+//       sameSite: 'strict',
+//       path: '/api/refresh',
+//       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+//     });
+
+//     //  Fetch user quiz history (optional)
+//     const quizAttempts = await QuizAttemptModel.find({ userId: user._id }).lean();
+//     // console.log('quizAttempts in login', quizAttempts);
+
+//     const detailedAttempts = await Promise.all(
+//       quizAttempts.map(async (attempt) => {
+//         const quiz = await quizModel.findOne({ id: attempt.quizId }).lean();
+//         // console.log('quiz in login', quiz);
+
+//         if (!quiz) return attempt;
+
+//         return {
+//           quizId: attempt.quizId,
+//           quizTitle: quiz.title,
+//           score: attempt.score,
+//           totalMarks: attempt.totalMarks,
+//           attemptedAt: attempt.attemptedAt,
+//           answers: attempt.answers.map((ans) => {
+//             const q = quiz.questions.find((qq) => qq.id === ans.questionId);
+//             return {
+//               question: q ? q.question : 'Question not found',
+//               options: q ? q.options : [],
+//               selectedIndex: ans.selectedIndex,
+//               correctAnswerIndex: ans.correctAnswerIndex,
+//               isCorrect: ans.isCorrect,
+//             };
+//           }),
+//         };
+//       }),
+//     );
+
+//     const userData = user.toObject();
+//     delete userData.password;
+
+//     res.status(200).json({
+//       message: 'Login successful',
+//       accessToken,
+//       expiresIn,
+//       user: {
+//         ...userData,
+//         attemptedQuizzes: detailedAttempts,
+//       },
+//     });
+//   } catch (error) {
+//     console.error('Error during login:', error);
+//     res.status(500).json({ msg: 'Server error during login', error: error.message });
+//   }
+// };
+
 //  LOGOUT
+
 export const logout = async (req, res) => {
   try {
     const user = await userModel.findById(req.user._id);
