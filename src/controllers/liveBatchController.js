@@ -157,7 +157,8 @@ export const deleteCategory = async (req, res) => {
 
     // console.log('category with batches', category.batches);
 
-    const allPublicId = category.batches.map((item) => deleteFromCloudinary(item?.publicId));
+    // const allPublicId =
+    category.batches.map((item) => deleteFromCloudinary(item?.publicId));
     // console.log('allPublicId', allPublicId);
 
     res.status(200).json({ success: true, message: 'Category deleted successfully' });
