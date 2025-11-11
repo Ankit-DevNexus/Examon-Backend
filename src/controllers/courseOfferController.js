@@ -1,6 +1,7 @@
 import CourseOfferModel from '../models/CourseOfferModel.js';
-import { uploadOnCloudinary } from '../utils/cloudinary.js';
+import { deleteFromCloudinary, uploadOnCloudinary } from '../utils/cloudinary.js';
 import { notifySubscribers } from '../utils/notifySubscribers.js';
+// import { v2 as cloudinary } from 'cloudinary';
 
 //  CREATE
 export const createCourseOffer = async (req, res) => {
@@ -281,7 +282,7 @@ export const deleteCourseOffer = async (req, res) => {
 
     // Delete image from Cloudinary (if exists)
     if (course.publicId) {
-      await cloudinary.uploader.destroy(course.publicId);
+      await deleteFromCloudinary(course.publicId);
     }
 
     //  Remove the course from array
