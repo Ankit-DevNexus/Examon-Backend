@@ -21,6 +21,7 @@ import {
 } from '../controllers/latestNewsController.js';
 import {
   createCourseOffer,
+  deleteCourseCategory,
   deleteCourseOffer,
   getAllCourseOffers,
   getCourseOfferById,
@@ -135,6 +136,7 @@ router.post('/course/create', Authenticate, authorize('admin'), upload.single('i
 router.get('/course/all', getAllCourseOffers);
 router.get('/course/:categoryId/:courseId', getCourseOfferById);
 router.patch('/course/update/:categoryId/:courseId', Authenticate, authorize('admin'), upload.single('img'), updateCourseOffer);
+router.delete('/course/delete/:categoryId', Authenticate, authorize('admin'), deleteCourseCategory);
 router.delete('/course/delete/:categoryId/:courseId', Authenticate, authorize('admin'), deleteCourseOffer);
 
 // --------------------------- Newslettter ----------------------------
