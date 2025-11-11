@@ -1,27 +1,47 @@
 import QuizAttemptModel from '../models/QuizAttemptModel.js';
 import quizModel from '../models/QuizModel.js';
+import { v4 as uuidv4 } from 'uuid';
 
 // Upload a new quiz (by Admin only)
+
 export const uploadQuiz = async (req, res) => {
   try {
     const quizData = req.body;
 
-    // Check if quiz with same ID already exists
-    // const existingQuiz = await quizModel.findOne({ id: quizData.id });
-    // if (existingQuiz) {
-    //   return res.status(400).json({ message: 'Quiz with this ID already exists' });
-    // }
+    // Generate a unique ID for the quiz
+    const quizId = 'Quiz-' + uuidv4().split('-')[0].toUpperCase();
 
-    const newQuiz = new quizModel(quizData);
+    // Assign unique IDs to each question in the quiz
+    const questionsWithIds = (quizData.questions || []).map((q) => ({
+      ...q,
+      id: 'Ques-' + uuidv4().split('-')[0].toUpperCase(),
+    }));
+
+    // Create quiz document
+    const newQuiz = new quizModel({
+      id: quizId,
+      title: quizData.title,
+      exam: quizData.exam,
+      duration: quizData.duration,
+      totalMarks: quizData.totalMarks,
+      tags: quizData.tags,
+      questions: questionsWithIds,
+    });
+
     await newQuiz.save();
 
     res.status(201).json({
+      success: true,
       message: 'Quiz uploaded successfully',
       quiz: newQuiz,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error uploading quiz', error });
+    console.error('Error uploading quiz:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error uploading quiz',
+      error: error.message,
+    });
   }
 };
 

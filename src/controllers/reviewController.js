@@ -5,7 +5,7 @@ import { uploadOnCloudinary } from '../utils/cloudinary.js';
 
 export const createReview = async (req, res) => {
   try {
-    const { clientname, star, review, course, status } = req.body;
+    const { clientname, profilePicture, star, review, course, status } = req.body;
 
     if (!clientname || !star || !review || !course) {
       return res.status(400).json({
@@ -22,32 +22,31 @@ export const createReview = async (req, res) => {
       });
     }
 
-    const imageReview = req.file?.path;
-    if (!imageReview) {
-      return res.status(400).json({
-        success: false,
-        message: 'Review image is missing',
-      });
-    }
+    // const imageReview = req.file?.path;
+    // if (!imageReview) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: 'Review image is missing',
+    //   });
+    // }
 
-    const uploadedImage = await uploadOnCloudinary(imageReview, 'review_images');
-    if (!uploadedImage) {
-      return res.status(500).json({
-        success: false,
-        message: 'Error uploading image to Cloudinary',
-      });
-    }
+    // const uploadedImage = await uploadOnCloudinary(imageReview, 'review_images');
+    // if (!uploadedImage) {
+    //   return res.status(500).json({
+    //     success: false,
+    //     message: 'Error uploading image to Cloudinary',
+    //   });
+    // }
 
-    console.log('req.user._id', req.user._id);
+    // console.log('req.user._id', req.user._id);
 
     const newReview = new ReviewModel({
       clientname,
-      profilePicture: uploadedImage.url || '',
+      profilePicture,
       star: starNumber,
       review,
       course,
       status,
-      publicId: uploadedImage.public_id || '',
       clientId: req.user._id,
     });
 
@@ -72,17 +71,18 @@ export const getAllReview = async (req, res) => {
   try {
     const allReviews = await ReviewModel.find().sort({ createdAt: -1 });
 
-    if (!allReviews || allReviews.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'No reviews found.',
-      });
-    }
+    // if (!allReviews || allReviews.length === 0) {
+    //   return res.status(200).json({
+    //     success: false,
+    //     message: 'No reviews found.',
+    //   });
+    // }
 
     res.status(200).json({
       success: true,
+      message: 'All Review fetched successfully',
       count: allReviews.length,
-      data: allReviews,
+      data: allReviews || [],
     });
   } catch (error) {
     console.error('Error fetching reviews:', error);
