@@ -27,14 +27,12 @@ const ReviewSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    publicId: {
-      type: String,
-    },
-    clientId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'user', // actual name of model
-      required: true,
-    },
+
+    // clientId: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: 'user', // actual name of model
+    //   required: true,
+    // },
     status: {
       type: String,
       ENUM: ['approved', 'reject', 'pending'],
