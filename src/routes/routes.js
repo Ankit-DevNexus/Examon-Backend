@@ -86,6 +86,7 @@ import {
 } from '../controllers/blogControllers.js';
 import { totalCountController } from '../controllers/AllRecordsController.js';
 import { updateProfile } from '../controllers/profileController.js';
+import { changePasswordController } from '../controllers/changePasswordController.js';
 
 const router = express.Router();
 
@@ -99,6 +100,9 @@ router.post('/signup', signup);
 router.post('/signin', login);
 router.delete('/delete', Authenticate, authorize('admin'), deleteUsers);
 router.patch('/profile/update/:userId', Authenticate, authorize('user'), upload.single('profileImage'), updateProfile);
+
+// ---------------- change password ---------------------------
+router.patch('/change-password', Authenticate, changePasswordController);
 
 // --------------------------- contact us  ----------------------------
 router.post('/contact-us', ContactUsController);

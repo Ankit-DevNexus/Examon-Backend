@@ -134,12 +134,29 @@ export const deleteQuestionPaper = async (req, res) => {
     const paper = category.questionspaper.id(paperId);
     if (!paper) return res.status(404).json({ success: false, message: 'Question paper not found' });
 
-    // Delete from Cloudinary
+    // Delete image from Cloudinary
     if (paper.publicId) {
-      await deleteFromCloudinary(paper.publicId);
+      try {
+        await deleteFromCloudinary(batch.publicId);
+      } catch (cloudErr) {
+        console.warn('Cloudinary deletion failed:', cloudErr.message);
+      }
     }
 
     paper.deleteOne();
+
+    // If this was the last batch → delete the whole category
+    if (category.questionspaper.length === 0) {
+      // (It’s 1 because we haven’t saved yet, and this batch still counts until we do)
+      await pyqModel.findByIdAndDelete(categoryId);
+      // console.log('catID', catID);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Batch deleted successfully and category removed as it has no batches left',
+      });
+    }
+
     await category.save();
 
     res.status(200).json({ success: true, message: 'Question paper deleted successfully' });

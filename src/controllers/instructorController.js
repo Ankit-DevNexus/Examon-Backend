@@ -4,8 +4,7 @@ import { uploadOnCloudinary, deleteFromCloudinary } from '../utils/cloudinary.js
 // Create Instructor
 export const createInstructor = async (req, res) => {
   try {
-    const { name, designation, experience, specialization, description, linkedin, coursesLink } = req.body;
-
+    const { name, subjectTaught, experience, CoursesHandled, specialization, description, youtubeLink, coursesLink } = req.body;
     // console.log('req.body', req.body);
 
     if (!req.file) return res.status(400).json({ success: false, message: 'Image is required' });
@@ -14,14 +13,15 @@ export const createInstructor = async (req, res) => {
     const uploadResponse = await uploadOnCloudinary(req.file.path, 'instructors');
 
     const instructor = await InstructorModel.create({
-      name,
-      designation,
-      experience,
-      specialization,
-      description,
       imageUrl: uploadResponse.url,
       publicId: uploadResponse.public_id,
-      linkedin,
+      name,
+      subjectTaught,
+      experience,
+      CoursesHandled,
+      specialization,
+      description,
+      youtubeLink,
       coursesLink,
     });
 

@@ -12,7 +12,7 @@ const questionPaperSchema = new mongoose.Schema(
 
 const pyqCategorySchema = new mongoose.Schema(
   {
-    pyqCategory: { type: String, required: true, unique: true },
+    pyqCategory: { type: String, required: true, unique: true, lowercase: true },
     questionspaper: [questionPaperSchema],
   },
   { timestamps: true },
