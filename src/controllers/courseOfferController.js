@@ -210,6 +210,7 @@ export const getCourseOfferById = async (req, res) => {
 //     });
 //   }
 // };
+
 export const updateCourseOffer = async (req, res) => {
   try {
     const { categoryId, courseId } = req.params;
@@ -263,6 +264,43 @@ export const updateCourseOffer = async (req, res) => {
   }
 };
 
+export const deleteCourseCategory = async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+
+    // Find the category by Id
+    const category = await CourseOfferModel.findById(categoryId);
+    if (!category) {
+      return res.status(404).json({ success: false, message: 'Category not found' });
+    }
+
+    // Delete all PDFs from Cloudinary (if any)
+    for (const course of category.courses) {
+      if (course.publicId) {
+        try {
+          await deleteFromCloudinary(course.publicId);
+        } catch (err) {
+          console.warn(`Cloudinary deletion failed for ${course.publicId}:`, err.message);
+        }
+      }
+    }
+
+    // Delete the category from DB
+    await CourseOfferModel.deleteOne({ _id: category._id });
+
+    res.status(200).json({
+      success: true,
+      message: `Category "${category.course}" and its question papers deleted successfully`,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting category',
+      error: error.message,
+    });
+  }
+};
+
 // DELETE
 export const deleteCourseOffer = async (req, res) => {
   try {
@@ -280,14 +318,31 @@ export const deleteCourseOffer = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Course not found' });
     }
 
-    // Delete image from Cloudinary (if exists)
+    // Delete image from Cloudinary
     if (course.publicId) {
-      await deleteFromCloudinary(course.publicId);
+      try {
+        await deleteFromCloudinary(course.publicId);
+      } catch (cloudErr) {
+        console.warn('Cloudinary deletion failed:', cloudErr.message);
+      }
     }
 
-    //  Remove the course from array
-    category.courses.pull({ _id: courseId });
+    course.deleteOne();
 
+    //  Remove the course from array
+    // category.courses.pull({ _id: courseId });
+
+    // If this was the last batch → delete the whole category
+    if (category.courses.length === 0) {
+      // (It’s 1 because we haven’t saved yet, and this batch still counts until we do)
+      await CourseOfferModel.findByIdAndDelete(categoryId);
+      // console.log('catID', catID);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Course deleted successfully and category removed as it has no batches left',
+      });
+    }
     // Save category after deletion
     await category.save();
 
@@ -304,36 +359,3 @@ export const deleteCourseOffer = async (req, res) => {
     });
   }
 };
-
-// export const deleteCourseOffer = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const existing = await CourseOfferModel.findById(id);
-
-//     if (!existing) {
-//       return res.status(404).json({ success: false, message: 'Course not found' });
-//     }
-
-//     if (existing.publicId) {
-//       try {
-//         await cloudinary.uploader.destroy(existing.publicId);
-//       } catch (err) {
-//         console.error('Error deleting image from Cloudinary:', err);
-//       }
-//     }
-
-//     await CourseOfferModel.findByIdAndDelete(id);
-
-//     res.status(200).json({
-//       success: true,
-//       message: 'Course deleted successfully',
-//     });
-//   } catch (error) {
-//     console.error('Error deleting course:', error);
-//     res.status(500).json({
-//       success: false,
-//       message: 'Server error while deleting course',
-//       error: error.message,
-//     });
-//   }
-// };
