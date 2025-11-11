@@ -2,14 +2,15 @@ import mongoose from 'mongoose';
 
 const instructorSchema = new mongoose.Schema(
   {
-    name: { type: String },
-    designation: { type: String },
-    experience: { type: String },
-    specialization: { type: String },
-    description: { type: String },
     imageUrl: { type: String },
     publicId: { type: String },
-    linkedin: { type: String },
+    name: { type: String },
+    subjectTaught: { type: String },
+    experience: { type: String },
+    CoursesHandled: { type: [String], default: [] },
+    specialization: { type: String },
+    description: { type: String },
+    youtubeLink: { type: String },
     coursesLink: { type: String },
   },
   { timestamps: true },
