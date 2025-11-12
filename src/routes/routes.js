@@ -88,6 +88,7 @@ import {
 import { totalCountController } from '../controllers/AllRecordsController.js';
 import { updateProfile } from '../controllers/profileController.js';
 import { changePasswordController } from '../controllers/changePasswordController.js';
+import { globalSearch } from '../controllers/globalSearchController.js';
 
 const router = express.Router();
 
@@ -107,6 +108,9 @@ router.patch('/change-password', Authenticate, changePasswordController);
 
 // --------------------------- contact us  ----------------------------
 router.post('/contact-us', ContactUsController);
+
+// --------------------------- Search  ----------------------------
+router.get('/search', globalSearch);
 
 // --------------------------- Review  ----------------------------
 
