@@ -7,16 +7,13 @@ export const createExamDetails = async (req, res) => {
     // console.log('req.body:', req.body);
     // console.log('req.file:', req.file);
 
-    const { title, Content } = req.body;
+    const { examDetailsCategory, title, Content } = req.body;
     console.log('req.body', req.body);
 
-    // const featuredImagePath = req.file?.path;
-
-    if (!Content || !title) {
-      return res.status(400).json({
-        message: 'Missing title, content, or image file',
-        received: { title, Content },
-      });
+    // Find or create the category
+    let category = await ExamModel.findOne({ examDetailsCategory });
+    if (!category) {
+      category = new ExamModel({ examDetailsCategory, examDetails: [] });
     }
 
     // const FeaturedImage = req.file?.path;
@@ -31,15 +28,26 @@ export const createExamDetails = async (req, res) => {
     //     return res.status(500).json({ success: false, message: 'Error uploading image to cloudinary' });
     //   }
     // }
-    const newcontent = new ExamModel({
+
+    // Add new question paper
+    category.examDetails.push({
       title,
       Content,
-      // featuredImage: uploadedImage?.secure_url || '',
-      // publicId: uploadedImage.public_id,
     });
 
-    await newcontent.save();
-    res.status(201).json({ message: 'saved successfully!' });
+    // const newcontent = new ExamModel({
+    //   title,
+    //   Content,
+    //   // featuredImage: uploadedImage?.secure_url || '',
+    //   // publicId: uploadedImage.public_id,
+    // });
+
+    const saved = await category.save();
+
+    res.status(201).json({
+      message: 'saved successfully!',
+      data: saved,
+    });
   } catch (err) {
     console.error('Full error details:', err);
     res.status(500).json({ message: 'Internal server error', error: err.message });
