@@ -5,9 +5,10 @@ import userModel from '../models/userModel.js';
 import profileModel from '../models/ProfileModel.js';
 
 //  USER SIGNUP
+
 export const signup = async (req, res) => {
   try {
-    const { fullname, email, password, role, phone } = req.body;
+    const { fullname, email, password, role } = req.body;
 
     if (!fullname || !email || !password) {
       return res.status(400).json({ msg: 'All fields are required' });
@@ -26,13 +27,11 @@ export const signup = async (req, res) => {
       role: role || 'user',
     });
 
-    // Initialize an empty profile for the user
+    // Automatically create linked profile with empty fields
     await profileModel.create({
-      publicId: '',
       userId: newUser._id,
       profileImage: '',
-      phone,
-      preferedCourse: '',
+      preferedCourse: '', // empty
     });
 
     res.status(201).json({
@@ -48,6 +47,7 @@ export const signup = async (req, res) => {
     res.status(500).json({ msg: 'Error creating user', error: error.message });
   }
 };
+
 // export const signup = async (req, res) => {
 //   try {
 //     const { fullname, email, password, role } = req.body;
