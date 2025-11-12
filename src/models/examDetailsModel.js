@@ -2,9 +2,6 @@ import mongoose from 'mongoose';
 
 const examSchema = new mongoose.Schema(
   {
-    featuredImage: {
-      type: String,
-    },
     title: {
       type: String,
     },
@@ -12,12 +9,19 @@ const examSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    publicId: { type: String },
   },
   {
     timestamps: true,
   },
 );
 
-const ExamModel = mongoose.model('ExamDetails', examSchema);
+const examDetailsCategorySchema = new mongoose.Schema(
+  {
+    examDetailsCategory: { type: String, required: true, unique: true, lowercase: true },
+    examDetails: [examSchema],
+  },
+  { timestamps: true },
+);
+
+const ExamModel = mongoose.model('ExamDetails', examDetailsCategorySchema);
 export default ExamModel;

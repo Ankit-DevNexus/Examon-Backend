@@ -259,8 +259,13 @@ export const login = async (req, res) => {
   }
 };
 
-//  LOGOUT
+// get all users
+export const allUsers = (req, res) => {
+  try {
+  } catch (error) {}
+};
 
+//  LOGOUT
 export const logout = async (req, res) => {
   try {
     const user = await userModel.findById(req.user._id);
@@ -286,16 +291,3 @@ export const deleteUsers = async (req, res) => {
     res.status(500).json({ msg: 'Error deleting users', error: error.message });
   }
 };
-
-// export const updateProfile = (async = (req, res) => {
-//   const { fullname, email, phone, password } = req.body;
-//   const { id } = req.params;
-
-//   if (!id) {
-//     return res.status(400).json({
-//       success: false,
-//       message: 'User not found',
-//     });
-//   }
-
-// });
