@@ -1,7 +1,7 @@
 // utils/sendEmail.js
 import nodemailer from 'nodemailer';
 
-export const sendEmail = async (subject, message, recipients) => {
+export const sendEmail = async (recipients, subject, message) => {
   try {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
@@ -14,7 +14,7 @@ export const sendEmail = async (subject, message, recipients) => {
     });
 
     const mailOptions = {
-      from: `"Website Updates" <${process.env.EMAIL_USER}>`,
+      from: `"From Examon" <${process.env.EMAIL_USER}>`,
       to: recipients,
       subject,
       html: message,

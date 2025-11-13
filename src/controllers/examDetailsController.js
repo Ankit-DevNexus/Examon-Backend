@@ -16,31 +16,11 @@ export const createExamDetails = async (req, res) => {
       category = new ExamModel({ examDetailsCategory, examDetails: [] });
     }
 
-    // const FeaturedImage = req.file?.path;
-
-    // let uploadedImage;
-    // if (FeaturedImage) {
-    //   try {
-    //     uploadedImage = await uploadOnCloudinary(FeaturedImage);
-    //     console.log('Upload Image', uploadedImage);
-    //   } catch (error) {
-    //     console.log('Error uploading image to cloudinary', error);
-    //     return res.status(500).json({ success: false, message: 'Error uploading image to cloudinary' });
-    //   }
-    // }
-
     // Add new question paper
     category.examDetails.push({
       title,
       Content,
     });
-
-    // const newcontent = new ExamModel({
-    //   title,
-    //   Content,
-    //   // featuredImage: uploadedImage?.secure_url || '',
-    //   // publicId: uploadedImage.public_id,
-    // });
 
     const saved = await category.save();
 
@@ -174,40 +154,66 @@ export const updateExamDetails = async (req, res) => {
 };
 
 //  Delete Exam
-export const deleteExamDetails = async (req, res) => {
+export const deleteCategoryAndExamsDetails = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { categoryId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ success: false, message: 'Invalid exam ID' });
+    const category = await ExamModel.findById(categoryId);
+    if (!category) {
+      return res.status(404).json({ success: false, message: 'Category not found' });
     }
 
-    const exam = await ExamModel.findById(id);
-    if (!exam) {
-      return res.status(404).json({ success: false, message: 'exam not found' });
-    }
-
-    if (exam.featuredImage) {
-      try {
-        const urlParts = exam.featuredImage.split('/');
-        const fileName = urlParts[urlParts.length - 1];
-        const publicId = `exams/${fileName.split('.')[0]}`;
-
-        await cloudinary.uploader.destroy(publicId);
-        console.log(`Deleted Cloudinary image: ${publicId}`);
-      } catch (err) {
-        console.warn('Failed to delete Cloudinary image:', err.message);
-      }
-    }
-
-    await ExamModel.findByIdAndDelete(id);
+    await ExamModel.findByIdAndDelete(categoryId);
 
     res.status(200).json({
       success: true,
-      message: 'exam deleted successfully',
+      message: 'Category and all exams deleted successfully',
     });
   } catch (error) {
-    console.error('Error deleting exam:', error);
+    console.error('Error deleting category:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message,
+    });
+  }
+};
+
+export const deleteExamDetailsInsideCategory = async (req, res) => {
+  try {
+    const { categoryId, examId } = req.params;
+
+    const category = await ExamModel.findById(categoryId);
+    if (!category) {
+      return res.status(404).json({ success: false, message: 'Category not found' });
+    }
+
+    const exam = category.examDetails.id(examId);
+    if (!exam) {
+      return res.status(404).json({ success: false, message: 'Exam not found in this category' });
+    }
+
+    exam.deleteOne();
+
+    // If this was the last exam, delete category instead of saving
+    if (category.examDetails.length === 0) {
+      await ExamModel.findByIdAndDelete(categoryId);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Last exam deleted — category also removed successfully',
+      });
+    }
+
+    // Otherwise, save updated category
+    await category.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Exam deleted successfully from category',
+    });
+  } catch (error) {
+    console.error('Error deleting exam inside category:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',

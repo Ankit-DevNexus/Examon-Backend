@@ -1,5 +1,5 @@
 import express from 'express';
-import { deleteUsers, login, logout, signup } from '../controllers/userController.js';
+import { deleteUsers, getAllUsers, login, logout, signup } from '../controllers/userController.js';
 import { ContactUsController } from '../controllers/contactusController.js';
 import upload from '../middleware/multerMiddleware.js';
 import { createReview, deleteReview, getAllReview, updateReview } from '../controllers/reviewController.js';
@@ -72,7 +72,8 @@ import {
 } from '../controllers/instructorController.js';
 import {
   createExamDetails,
-  deleteExamDetails,
+  deleteCategoryAndExamsDetails,
+  deleteExamDetailsInsideCategory,
   getAllExamsDetails,
   getExamDetailsById,
   updateExamDetails,
@@ -89,6 +90,15 @@ import { totalCountController } from '../controllers/AllRecordsController.js';
 import { updateProfile } from '../controllers/profileController.js';
 import { changePasswordController } from '../controllers/changePasswordController.js';
 import { globalSearch } from '../controllers/globalSearchController.js';
+import { resendOTP, verifyOTP } from '../controllers/verifyOTPController.js';
+import {
+  // deleteHomePageQuiz,
+  deleteHomePageQuizCategory,
+  getAllHomePageQuizzes,
+  getHomePageQuizById,
+  updateHomePageQuiz,
+  uploadHomePageQuiz,
+} from '../controllers/quizHomePageController.js';
 
 const router = express.Router();
 
@@ -96,6 +106,12 @@ const router = express.Router();
 router.post('/admin/signup', adminSignup);
 router.post('/admin/signin', adminLogin);
 router.post('/logout', Authenticate, logout);
+router.get('/all-users', Authenticate, getAllUsers);
+
+// ---------------- OTP verification ---------------------------
+
+router.post('/verify-otp', verifyOTP);
+router.post('/resend-otp', resendOTP);
 
 // client (users)
 router.post('/signup', signup);
@@ -164,6 +180,18 @@ router.post('/quizzes/:id/submit', Authenticate, submitQuiz);
 router.get('/profile/quizzes', Authenticate, authorize('user'), getUserQuizHistory);
 router.get('/user/attempts', Authenticate, authorize('user'), getUserQuizAttempts);
 
+// --------------------------- Home page Quiz ----------------------------
+
+// Admin route to upload quiz
+router.post('/home/quizzes/upload', Authenticate, authorize('admin'), uploadHomePageQuiz);
+
+// Public routes
+router.get('/home/quizzes', getAllHomePageQuizzes);
+router.get('/home/quizzes/:id', getHomePageQuizById);
+router.patch('/home/quizzes/update/:id', Authenticate, authorize('admin'), updateHomePageQuiz);
+router.delete('/home/quizzes/delete/:quizId', Authenticate, authorize('admin'), deleteHomePageQuizCategory);
+// router.delete('/home/quizzes/:categoryId/:examId', Authenticate, authorize('admin'), deleteHomePageQuiz);
+
 // ------------------------Study material - Exam notes ---------------------------
 
 router.post('/notes/add', Authenticate, authorize('admin'), upload.single('notes'), createExamNotes);
@@ -208,7 +236,8 @@ router.post('/exams/details', upload.none(), Authenticate, createExamDetails);
 router.get('/exams/details', getAllExamsDetails);
 router.get('/exams/details/:id', getExamDetailsById);
 router.patch('/exams/details/update/:id', Authenticate, updateExamDetails);
-router.delete('/exams/details/delete/:id', Authenticate, deleteExamDetails);
+router.delete('/exams/details/delete/:categoryId', Authenticate, deleteCategoryAndExamsDetails);
+router.delete('/exams/details/delete/:categoryId/:examId', Authenticate, deleteExamDetailsInsideCategory);
 
 // ------------------------------------ Blog ------------------------------------
 
