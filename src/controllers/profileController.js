@@ -72,3 +72,34 @@ export const updateProfile = async (req, res) => {
     });
   }
 };
+
+//  Get profile data by userId
+export const getProfileByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params; // e.g., /api/profile/:userId
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'User ID is required' });
+    }
+
+    // Fetch all profiles for the given user ID (usually one, but supports multiple)
+    const profiles = await profileModel.find({ userId });
+
+    if (!profiles || profiles.length === 0) {
+      return res.status(404).json({ success: false, message: 'No profiles found for this user' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Profiles fetched successfully',
+      data: profiles,
+    });
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching profile data',
+      error: error.message,
+    });
+  }
+};

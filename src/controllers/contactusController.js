@@ -28,14 +28,14 @@ export const ContactUsController = async (req, res) => {
       port: Number(process.env.SMTP_PORT),
       secure: Number(process.env.SMTP_PORT) === 465, // secure true only for 465
       auth: {
-        user: process.env.USER_MAIL,
-        pass: process.env.ADMIN_MAIL_PASS,
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 
     // Email to client
     const ClientMailOptions = {
-      from: process.env.USER_MAIL,
+      from: process.env.EMAIL_USER,
       to: email,
       subject: 'Thank You for Contacting Examon Courses',
       html: `
@@ -57,7 +57,7 @@ export const ContactUsController = async (req, res) => {
 
     // Email to admin
     const AdminMailOptions = {
-      from: process.env.USER_MAIL,
+      from: process.env.EMAIL_USER,
       to: AdminMail,
       subject: '📩 New Contact Inquiry - Examon Website',
       html: `
@@ -90,6 +90,46 @@ export const ContactUsController = async (req, res) => {
   }
 };
 
+export const getAllContacts = async (req, res) => {
+  try {
+    const { status, page = 1, limit = 10 } = req.query;
+
+    // Build filter (only status-based)
+    const filter = {};
+    if (status) {
+      filter.status = status; // e.g., ?status=new or ?status=resolved
+    }
+
+    // Pagination setup
+    const skip = (page - 1) * limit;
+
+    // Fetch contacts and count simultaneously
+    const [contacts, total] = await Promise.all([
+      contactModel
+        .find(filter)
+        .sort({ createdAt: -1 }) // newest first
+        .skip(skip)
+        .limit(Number(limit)),
+      contactModel.countDocuments(filter),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      message: 'Contact leads fetched successfully',
+      page: Number(page),
+      totalPages: Math.ceil(total / limit),
+      totalRecords: total,
+      contacts,
+    });
+  } catch (error) {
+    console.error('Error fetching contact leads:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch contact leads',
+      error: error.message,
+    });
+  }
+};
 // import nodemailer from 'nodemailer';
 
 // export const ContactUsController = async (req, res) => {
