@@ -1,6 +1,6 @@
 import express from 'express';
 import { deleteUsers, getAllUsers, login, logout, signup } from '../controllers/userController.js';
-import { ContactUsController } from '../controllers/contactusController.js';
+import { ContactUsController, getAllContacts } from '../controllers/contactusController.js';
 import upload from '../middleware/multerMiddleware.js';
 import { createReview, deleteReview, getAllReview, updateReview } from '../controllers/reviewController.js';
 import { Authenticate, authorize } from '../middleware/authMiddleware.js';
@@ -87,7 +87,7 @@ import {
   getBlogByIdController,
 } from '../controllers/blogControllers.js';
 import { totalCountController } from '../controllers/AllRecordsController.js';
-import { updateProfile } from '../controllers/profileController.js';
+import { getProfileByUserId, updateProfile } from '../controllers/profileController.js';
 import { changePasswordController } from '../controllers/changePasswordController.js';
 import { globalSearch } from '../controllers/globalSearchController.js';
 import { resendOTP, verifyOTP } from '../controllers/verifyOTPController.js';
@@ -119,11 +119,16 @@ router.post('/signin', login);
 router.delete('/delete', Authenticate, authorize('admin'), deleteUsers);
 router.patch('/profile/update/:userId', Authenticate, authorize('user'), upload.single('profileImage'), updateProfile);
 
+// GET profile
+router.get('/profile/:userId', Authenticate, getProfileByUserId);
+
 // ---------------- change password ---------------------------
 router.patch('/change-password', Authenticate, changePasswordController);
 
 // --------------------------- contact us  ----------------------------
 router.post('/contact-us', ContactUsController);
+// GET - for admin dashboard (fetch all leads)
+router.get('/contact-us', getAllContacts);
 
 // --------------------------- Search  ----------------------------
 router.get('/search', globalSearch);
