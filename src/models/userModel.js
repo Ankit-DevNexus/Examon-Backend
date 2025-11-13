@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['admin', 'user'],
   },
-  isActive: { type: Boolean, default: true },
+  isActive: { type: Boolean, default: false },
   lastLogin: { type: Date }, // track last login
   loginHistory: [
     {
@@ -21,6 +21,8 @@ const userSchema = new mongoose.Schema({
   ],
   refreshToken: String,
   tokenVersion: { type: Number, default: 0 },
+  otp: String,
+  otpExpiresAt: String,
 });
 
 // Hash password before saving
