@@ -2,7 +2,7 @@ import express from 'express';
 import { deleteUsers, getAllUsers, login, logout, signup } from '../controllers/userController.js';
 import { ContactUsController, getAllContacts } from '../controllers/contactusController.js';
 import upload from '../middleware/multerMiddleware.js';
-import { createReview, deleteReview, getAllReview, updateReview } from '../controllers/reviewController.js';
+import { createReview, deleteReview, getAllReview, getAllReviewById, updateReview } from '../controllers/reviewController.js';
 import { Authenticate, authorize } from '../middleware/authMiddleware.js';
 import {
   createAchievement,
@@ -32,6 +32,7 @@ import {
   deleteQuiz,
   getAllQuizzes,
   getQuizById,
+  getQuizByUserId,
   getUserQuizAttempts,
   getUserQuizHistory,
   submitQuiz,
@@ -106,7 +107,6 @@ const router = express.Router();
 router.post('/admin/signup', adminSignup);
 router.post('/admin/signin', adminLogin);
 router.post('/logout', Authenticate, logout);
-router.get('/all-users', Authenticate, getAllUsers);
 
 // ---------------- OTP verification ---------------------------
 
@@ -118,16 +118,16 @@ router.post('/signup', signup);
 router.post('/signin', login);
 router.delete('/delete', Authenticate, authorize('admin'), deleteUsers);
 router.patch('/profile/update/:userId', Authenticate, authorize('user'), upload.single('profileImage'), updateProfile);
-
-// GET profile
 router.get('/profile/:userId', Authenticate, getProfileByUserId);
+
+// all users
+router.get('/users/all', Authenticate, getAllUsers);
 
 // ---------------- change password ---------------------------
 router.patch('/change-password', Authenticate, changePasswordController);
 
 // --------------------------- contact us  ----------------------------
 router.post('/contact-us', ContactUsController);
-// GET - for admin dashboard (fetch all leads)
 router.get('/contact-us', getAllContacts);
 
 // --------------------------- Search  ----------------------------
@@ -137,6 +137,7 @@ router.get('/search', globalSearch);
 
 router.post('/review/create', upload.single('profilePicture'), Authenticate, createReview);
 router.get('/review/get', getAllReview);
+router.get('/review/:userId', getAllReviewById); // get review by UserId
 router.patch('/review/update/:id', upload.single('profilePicture'), Authenticate, updateReview);
 router.delete('/review/delete/:id', Authenticate, deleteReview);
 
@@ -182,7 +183,8 @@ router.delete('/quizzes/:id', Authenticate, authorize('admin'), deleteQuiz);
 router.post('/quizzes/:id/submit', Authenticate, submitQuiz);
 // router.post('/quizzes/:id/submit', Authenticate, authorize('user'), submitQuiz);
 
-router.get('/profile/quizzes', Authenticate, authorize('user'), getUserQuizHistory);
+router.get('/user/quizzes/:userId', getQuizByUserId);
+router.get('/attempted/quizzes', Authenticate, getUserQuizHistory);
 router.get('/user/attempts', Authenticate, authorize('user'), getUserQuizAttempts);
 
 // --------------------------- Home page Quiz ----------------------------
@@ -240,7 +242,7 @@ router.post('/upload-image', upload.single('upload'), uploadImageController);
 router.post('/exams/details', upload.none(), Authenticate, createExamDetails);
 router.get('/exams/details', getAllExamsDetails);
 router.get('/exams/details/:id', getExamDetailsById);
-router.patch('/exams/details/update/:id', Authenticate, updateExamDetails);
+router.patch('/exams/details/update/:id', Authenticate, upload.single('upload'), updateExamDetails);
 router.delete('/exams/details/delete/:categoryId', Authenticate, deleteCategoryAndExamsDetails);
 router.delete('/exams/details/delete/:categoryId/:examId', Authenticate, deleteExamDetailsInsideCategory);
 

@@ -156,17 +156,54 @@ export const login = async (req, res) => {
 };
 
 // get all users
+
 export const getAllUsers = async (req, res) => {
   try {
-    const allUsers = await userModel.find();
+    const { page = 1, limit = 1, sort = 'desc' } = req.query;
+
+    const skip = (page - 1) * limit;
+
+    // Fetch users and their profiles together
+    const [users, total] = await Promise.all([
+      userModel
+        .find({}, { password: 0, refreshToken: 0, otp: 0, otpExpiresAt: 0 })
+        .sort({ createdAt: sort === 'asc' ? 1 : -1 })
+        .skip(skip)
+        .limit(Number(limit))
+        .lean(),
+      userModel.countDocuments(),
+    ]);
+
+    // Fetch all profiles linked to those users
+    const userIds = users.map((u) => u._id);
+    const profiles = await profileModel.find({ userId: { $in: userIds } }).lean();
+
+    // Merge user + profile data
+    const mergedUsers = users.map((user) => {
+      const profile = profiles.find((p) => p.userId.toString() === user._id.toString());
+      return {
+        ...user,
+        phone: profile?.phone || '',
+        profileImage: profile?.profileImage || '',
+        preferedCourse: profile?.preferedCourse || '',
+      };
+    });
 
     return res.status(200).json({
-      message: 'all users',
-      data: allUsers,
+      success: true,
+      message: 'Users fetched successfully',
+      page: Number(page),
+      totalPages: Math.ceil(total / limit),
+      totalUsers: total,
+      data: mergedUsers,
     });
   } catch (error) {
-    console.error('Error during fetching all users:', error);
-    res.status(500).json({ msg: 'Server error during fetching all users', error: error.message });
+    console.error('Error fetching users:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during fetching all users',
+      error: error.message,
+    });
   }
 };
 

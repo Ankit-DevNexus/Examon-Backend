@@ -3,7 +3,6 @@ import quizModel from '../models/QuizModel.js';
 import { v4 as uuidv4 } from 'uuid';
 
 // Upload a new quiz (by Admin only)
-
 export const uploadQuiz = async (req, res) => {
   try {
     const quizData = req.body;
@@ -76,6 +75,24 @@ export const getQuizById = async (req, res) => {
   }
 };
 
+// Get a single quiz by userId
+export const getQuizByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Find by userId
+    const quiz = await QuizAttemptModel.find({ userId });
+
+    if (!quiz) {
+      return res.status(404).json({ message: 'Quiz not found' });
+    }
+
+    res.status(200).json(quiz);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching quiz', error });
+  }
+};
+
 // Update quiz (Admin only)
 export const updateQuiz = async (req, res) => {
   try {
@@ -118,8 +135,7 @@ export const deleteQuiz = async (req, res) => {
   }
 };
 
-// Submit quiz and calculate score
-
+// Submit quiz and calculate score (for user)
 export const submitQuiz = async (req, res) => {
   try {
     const userId = req.user._id; // coming from middleware (auth)
@@ -209,96 +225,41 @@ export const submitQuiz = async (req, res) => {
   }
 };
 
-// export const submitQuiz = async (req, res) => {
-//   try {
-//     const userId = req.user._id; // coming from middleware (auth)
-//     const { answers } = req.body;
-//     const quizId = req.params.id;
-
-//     const quiz = await quizModel.findOne({ id: quizId }).lean();
-//     if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
-
-//     // Calculate score
-//     let score = 0;
-//     const detailedAnswers = quiz.questions.map((ques) => {
-//       const userAnswer = answers.find((ans) => ans.questionId === ques.id);
-//       const isCorrect = userAnswer && userAnswer.selectedIndex === ques.correctAnswerIndex;
-//       if (isCorrect) score += ques.marks;
-//       return {
-//         questionId: ques.id,
-//         question: ques.question,
-//         options: ques.options,
-//         selectedIndex: userAnswer ? userAnswer.selectedIndex : null,
-//         correctAnswerIndex: ques.correctAnswerIndex,
-//         isCorrect,
-//         marks: ques.marks,
-//         topic: ques.topic,
-//       };
-//     });
-
-//     // Check if user has already attempted the quiz
-//     const existingAttempt = await QuizAttemptModel.findOne({ userId, quizId });
-
-//     if (existingAttempt) {
-//       if (score > existingAttempt.score) {
-//         // Update only if the new score is higher
-//         existingAttempt.score = score;
-//         existingAttempt.answers = detailedAnswers;
-//         existingAttempt.totalMarks = quiz.totalMarks;
-//         existingAttempt.attemptedAt = new Date();
-//         await existingAttempt.save();
-
-//         return res.status(200).json({
-//           message: 'Quiz reattempt recorded — new higher score updated!',
-//           score,
-//           totalMarks: quiz.totalMarks,
-//           detailedAnswers,
-//           questions: quiz.questions,
-//         });
-//       } else {
-//         // Keep old score if new one is not higher
-//         return res.status(200).json({
-//           message: 'Quiz already attempted — new score is lower, so not updated.',
-//           previousScore: existingAttempt.score,
-//           newScore: score,
-//           totalMarks: quiz.totalMarks,
-//           detailedAnswers: existingAttempt.answers,
-//           questions: quiz.questions,
-//         });
-//       }
-//     }
-
-//     // Create a new attempt if user is attempting for the first time
-//     await QuizAttemptModel.create({
-//       userId,
-//       quizId,
-//       answers: detailedAnswers,
-//       score,
-//       totalMarks: quiz.totalMarks,
-//     });
-
-//     res.status(200).json({
-//       message: 'Quiz submitted successfully',
-//       score,
-//       totalMarks: quiz.totalMarks,
-//       detailedAnswers,
-//       questions: quiz.questions,
-//     });
-//   } catch (error) {
-//     console.error('Error submitting quiz:', error);
-//     res.status(500).json({ message: 'Error submitting quiz', error });
-//   }
-// };
-
+// get all attempted quiz history with count
 export const getUserQuizHistory = async (req, res) => {
   try {
-    const attempts = await QuizAttemptModel.find({ userId: req.user._id }).sort({ attemptedAt: -1 }).limit(50); // paginate
-    res.json(attempts);
+    // Fetch all attempts
+    const attempts = await QuizAttemptModel.find().sort({ attemptedAt: -1 }).limit(50);
+
+    // Count total attempts PER quiz
+    const quizAttemptCounts = await QuizAttemptModel.aggregate([
+      {
+        $group: {
+          _id: '$quizId', // group by quiz
+          totalAttempts: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          quizId: '$_id',
+          totalAttempts: 1,
+          _id: 0,
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      message: 'get all attempted Quizzes',
+      totalAttemptedQuiz: attempts.length, // total attempts fetched
+      quizAttemptCounts, // per quiz count
+      attempts,
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching quiz history', error });
+    return res.status(500).json({ message: 'Error fetching quiz history', error });
   }
 };
 
+// get all atempted quiz for particular user
 export const getUserQuizAttempts = async (req, res) => {
   try {
     const userId = req.user._id; // from auth middleware
