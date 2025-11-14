@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import ExamModel from '../models/examDetailsModel.js';
+import { deleteFromCloudinary } from '../utils/cloudinary.js';
 
 // Create Exam
 export const createExamDetails = async (req, res) => {
@@ -67,23 +68,28 @@ export const getExamDetailsById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Validate the id string
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid ID' });
+      return res.status(400).json({ message: 'Invalid ID format' });
     }
 
-    const exam = await ExamModel.findById(id);
+    // Find the parent doc containing this exam detail
+    const parentExam = await ExamModel.findOne({ 'examDetails._id': id });
 
-    //  Handle “not found”
-    if (!exam) {
-      return res.status(404).json({ message: 'Not found' });
+    if (!parentExam) {
+      return res.status(404).json({ message: 'Exam detail not found' });
     }
 
-    // Return the exam
-    res.status(200).json(exam);
+    // Extract the specific subdocument
+    const detail = parentExam.examDetails.id(id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Exam detail fetched successfully',
+      data: detail,
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error fetching' });
+    console.error('Error fetching exam detail:', err);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -94,62 +100,74 @@ export const updateExamDetails = async (req, res) => {
     const { title, Content } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ success: false, message: 'Invalid exam ID' });
+      return res.status(400).json({ success: false, message: 'Invalid exam detail ID' });
     }
 
-    const exam = await ExamModel.findById(id);
-    if (!exam) {
-      return res.status(404).json({ success: false, message: 'exam not found' });
+    // Find the parent document containing this exam detail
+    const parentExam = await ExamModel.findOne({ 'examDetails._id': id });
+    if (!parentExam) {
+      return res.status(404).json({ success: false, message: 'Exam detail not found' });
     }
-    console.log('Uploaded File:', req.file);
 
-    const updateFields = {};
-    if (title?.trim()) updateFields.title = title.trim();
-    if (Content?.trim()) updateFields.Content = Content.trim();
+    // Get the specific subdocument
+    const examDetail = parentExam.examDetails.id(id);
+    if (!examDetail) {
+      return res.status(404).json({ success: false, message: 'Exam detail not found' });
+    }
 
-    // if (Object.keys(updateFields).length === 0) {
-    //   return res.status(400).json({ success: false, message: "No valid fields to update" });
-    // }
+    // Update fields
+    if (title?.trim()) examDetail.title = title.trim();
+    if (Content?.trim()) examDetail.Content = Content.trim();
 
+    // Handle image upload (if file is included)
     if (req.file) {
       const newImagePath = req.file.path;
 
       // Delete old image from Cloudinary if exists
-      if (exam.featuredImage) {
+      if (examDetail.featuredImage) {
         try {
-          const urlParts = exam.featuredImage.split('/');
+          const urlParts = examDetail.featuredImage.split('/');
           const fileName = urlParts[urlParts.length - 1];
           const publicId = `exams/${fileName.split('.')[0]}`;
-          await cloudinary.uploader.destroy(publicId);
+
+          await deleteFromCloudinary(publicId);
+
+          // await cloudinary.uploader.destroy(publicId);
           console.log(`Old image deleted from Cloudinary: ${publicId}`);
         } catch (err) {
           console.warn('Failed to delete old Cloudinary image:', err.message);
         }
       }
 
-      // Upload new image to Cloudinary
-      const uploadedImage = await cloudinary.uploader.upload(newImagePath, 'Exam_Details_images');
+      // Upload new image
+      // const uploadedImage = await cloudinary.uploader.upload(newImagePath, {
+      //   folder: 'c',
+      // });
 
-      updateFields.featuredImage = uploadedImage.secure_url;
+      const uploadedImage = await uploadOnCloudinary(newImagePath, 'newImagePath');
+      if (!uploadedImage) {
+        return res.status(500).json({ success: false, message: 'Image upload failed' });
+      }
 
-      // Delete local file
-      fs.unlinkSync(newImagePath);
+      examDetail.featuredImage = uploadedImage.secure_url;
+      // examDetail.publicId = uploadedImage.public_id;
     }
 
-    const updatedexam = await ExamModel.findByIdAndUpdate(id, updateFields, { new: true });
-
-    if (!updatedexam) {
-      return res.status(404).json({ success: false, message: 'exam not found' });
-    }
+    // Save parent document
+    await parentExam.save();
 
     res.status(200).json({
       success: true,
-      message: 'exam updated successfully',
-      updatedexam,
+      message: 'Exam detail updated successfully',
+      updatedDetail: examDetail,
     });
   } catch (error) {
-    console.error('Error updating exam:', error);
-    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+    console.error('Error updating exam detail:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message,
+    });
   }
 };
 

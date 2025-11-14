@@ -1,5 +1,5 @@
 import profileModel from '../models/ProfileModel.js';
-import { uploadOnCloudinary } from '../utils/cloudinary.js';
+import { deleteFromCloudinary, uploadOnCloudinary } from '../utils/cloudinary.js';
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 
@@ -24,7 +24,8 @@ export const updateProfile = async (req, res) => {
       // Delete old image from Cloudinary if it exists
       if (profile.publicId) {
         try {
-          await cloudinary.uploader.destroy(profile.publicId);
+          await deleteFromCloudinary(profile.publicId);
+          // await cloudinary.uploader.destroy(profile.publicId);
           console.log('Old image deleted from Cloudinary:', profile.publicId);
         } catch (err) {
           console.error('Error deleting old image:', err.message);

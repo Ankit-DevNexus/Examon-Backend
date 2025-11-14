@@ -47,7 +47,7 @@ export const createReview = async (req, res) => {
       review,
       course,
       status,
-      clientId: req.user._id,
+      userId: req.user._id,
     });
 
     const savedReview = await newReview.save();
@@ -94,6 +94,25 @@ export const getAllReview = async (req, res) => {
   }
 };
 
+export const getAllReviewById = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const Review = await ReviewModel.find({ userId }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      message: 'All Review fetched successfully',
+      data: Review || [],
+    });
+  } catch (error) {
+    console.error('Error fetching reviews:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching reviews.',
+      error: error.message,
+    });
+  }
+};
 // UPDATE REVIEW
 export const updateReview = async (req, res) => {
   try {

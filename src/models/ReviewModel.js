@@ -2,6 +2,11 @@ import mongoose from 'mongoose';
 
 const ReviewSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'user',
+      required: true,
+    },
     clientname: {
       type: String,
       required: true,
@@ -27,12 +32,6 @@ const ReviewSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-
-    // clientId: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   ref: 'user', // actual name of model
-    //   required: true,
-    // },
     status: {
       type: String,
       ENUM: ['approved', 'reject', 'pending'],
