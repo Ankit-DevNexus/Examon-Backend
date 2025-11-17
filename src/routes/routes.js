@@ -31,8 +31,8 @@ import { deleteSubscriber, getAllSubscriber, subscribeNewsletter } from '../cont
 import {
   deleteQuiz,
   getAllQuizzes,
+  getAttemptsByUserId,
   getQuizById,
-  getQuizByUserId,
   getUserQuizAttempts,
   getUserQuizHistory,
   submitQuiz,
@@ -183,7 +183,7 @@ router.delete('/quizzes/:id', Authenticate, authorize('admin'), deleteQuiz);
 router.post('/quizzes/:id/submit', Authenticate, submitQuiz);
 // router.post('/quizzes/:id/submit', Authenticate, authorize('user'), submitQuiz);
 
-router.get('/user/quizzes/:userId', getQuizByUserId);
+router.get('/user/quizzes/:userId', Authenticate, getAttemptsByUserId); // get attempted quizzes by user ID who is logged in
 router.get('/attempted/quizzes', Authenticate, getUserQuizHistory);
 router.get('/user/attempts', Authenticate, authorize('user'), getUserQuizAttempts);
 
@@ -199,7 +199,7 @@ router.patch('/home/quizzes/update/:id', Authenticate, authorize('admin'), updat
 router.delete('/home/quizzes/delete/:quizId', Authenticate, authorize('admin'), deleteHomePageQuizCategory);
 // router.delete('/home/quizzes/:categoryId/:examId', Authenticate, authorize('admin'), deleteHomePageQuiz);
 
-// ------------------------Study material - Exam notes ---------------------------
+// ------------------------ Study material - Exam notes ---------------------------
 
 router.post('/notes/add', Authenticate, authorize('admin'), upload.single('notes'), createExamNotes);
 router.get('/notes/all', getAllExamNotes);
@@ -218,7 +218,6 @@ router.delete('/live/batches/delete/:categoryId/:batchId', Authenticate, authori
 router.delete('/live/category/delete/:categoryId', Authenticate, authorize('admin'), deleteCategory); // delete category
 
 // ------------------------------------ PYQ ------------------------------------
-
 // Routes
 router.post('/pyq/add', Authenticate, authorize('admin'), upload.single('pdf'), addQuestionPaper);
 router.get('/pyq/', getAllPYQs);
@@ -255,7 +254,7 @@ router.get('/blogs/:id', getBlogByIdController);
 router.patch('/blogs/update/:id', Authenticate, upload.single('featuredImage'), EditBlogController);
 router.delete('/blogs/delete/:id', Authenticate, DeleteBlogController);
 
-// ------------------------------------ total count  ------------------------------------
+// ------------------------------------ total count ------------------------------------
 
 router.get('/totalcount', totalCountController);
 export default router;

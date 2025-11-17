@@ -75,21 +75,81 @@ export const getQuizById = async (req, res) => {
   }
 };
 
-// Get a single quiz by userId
-export const getQuizByUserId = async (req, res) => {
+// List all attempted quiz by userId
+export const getAttemptsByUserId = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    // Find by userId
-    const quiz = await QuizAttemptModel.find({ userId });
+    // Fetch all attempts by the user
+    const attempts = await QuizAttemptModel.find({ userId }).sort({ attemptedAt: -1 }).lean();
 
-    if (!quiz) {
-      return res.status(404).json({ message: 'Quiz not found' });
+    if (!attempts || attempts.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: `No attempts found for user ${userId}`,
+        totalAttempts: 0,
+        attempts: [],
+      });
     }
 
-    res.status(200).json(quiz);
+    // Enrich attempts with quiz + question data
+    const detailedAttempts = await Promise.all(
+      attempts.map(async (attempt) => {
+        // Fetch quiz document (your quiz uses both _id and custom id)
+        const quiz = (await quizModel.findById(attempt.quizId).lean()) || (await quizModel.findOne({ id: attempt.quizId }).lean());
+
+        if (!quiz) {
+          return {
+            ...attempt,
+            quizDetails: null,
+          };
+        }
+
+        // Combine quiz questions with user's selected answers
+        const questionDetails = attempt.answers
+          .map((ans) => {
+            const question = quiz.questions.find((q) => q.id === ans.questionId);
+            if (!question) return null;
+
+            return {
+              questionId: question.id,
+              question: question.question,
+              options: question.options,
+              correctAnswer: question.correctAnswerIndex,
+              userAnswer: ans.selectedIndex ?? null,
+              isCorrect: ans.isCorrect ?? ans.selectedIndex === question.correctAnswerIndex,
+              marks: question.marks,
+              topic: question.topic,
+              difficulty: question.difficulty,
+            };
+          })
+          .filter(Boolean);
+
+        return {
+          quizId: attempt.quizId,
+          quizTitle: quiz.title,
+          quizTotalMarks: quiz.totalMarks,
+          score: attempt.score,
+          totalMarks: attempt.totalMarks,
+          attemptedAt: attempt.attemptedAt,
+          questions: questionDetails,
+        };
+      }),
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: `All attempts for user ${userId}`,
+      totalAttempts: detailedAttempts.length,
+      attempts: detailedAttempts,
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching quiz', error });
+    console.error('getAttemptsByUserId error:', error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching user's quiz attempts",
+      error: error.message,
+    });
   }
 };
 
