@@ -100,6 +100,7 @@ import {
   updateHomePageQuiz,
   uploadHomePageQuiz,
 } from '../controllers/quizHomePageController.js';
+import { createNotification, getLatestNotification } from '../controllers/notificationController.js';
 
 const router = express.Router();
 
@@ -184,6 +185,7 @@ router.post('/quizzes/:id/submit', Authenticate, submitQuiz);
 // router.post('/quizzes/:id/submit', Authenticate, authorize('user'), submitQuiz);
 
 router.get('/user/quizzes/:userId', Authenticate, getAttemptsByUserId); // get attempted quizzes by user ID who is logged in
+
 router.get('/attempted/quizzes', Authenticate, getUserQuizHistory);
 router.get('/user/attempts', Authenticate, authorize('user'), getUserQuizAttempts);
 
@@ -257,4 +259,9 @@ router.delete('/blogs/delete/:id', Authenticate, DeleteBlogController);
 // ------------------------------------ total count ------------------------------------
 
 router.get('/totalcount', totalCountController);
+
+// ------------------------------------ Notification ------------------------------------
+
+router.post('/notification/create', createNotification);
+router.get('/notification/latest', getLatestNotification);
 export default router;
