@@ -6,7 +6,6 @@ import profileModel from '../models/ProfileModel.js';
 import { generateOTP, sendVerificationOTP } from '../helpers/otpHelper.js';
 
 //  USER SIGNUP
-
 export const signup = async (req, res) => {
   try {
     const { fullname, email, password, role } = req.body;
@@ -57,6 +56,7 @@ export const signup = async (req, res) => {
   }
 };
 
+//  User Login
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -156,22 +156,22 @@ export const login = async (req, res) => {
 };
 
 // get all users
-
 export const getAllUsers = async (req, res) => {
   try {
-    const { page = 1, limit = 1, sort = 'desc' } = req.query;
+    const { page = 1, limit = 1 } = req.query;
 
     const skip = (page - 1) * limit;
 
     // Fetch users and their profiles together
     const [users, total] = await Promise.all([
       userModel
-        .find({}, { password: 0, refreshToken: 0, otp: 0, otpExpiresAt: 0 })
-        .sort({ createdAt: sort === 'asc' ? 1 : -1 })
+        .find({ role: 'user' }, { password: 0, tokenVersion: 0, loginHistory: 0, __v: 0, refreshToken: 0, otp: 0, otpExpiresAt: 0 })
+        .sort({ createdAt: -1 })
         .skip(skip)
         .limit(Number(limit))
         .lean(),
-      userModel.countDocuments(),
+      // .select('-tokenVersion -loginHistory -__v'),
+      userModel.countDocuments({ role: 'user' }),
     ]);
 
     // Fetch all profiles linked to those users
@@ -207,7 +207,7 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-//  LOGOUT
+// LOGOUT
 export const logout = async (req, res) => {
   try {
     const user = await userModel.findById(req.user._id);
