@@ -339,6 +339,8 @@ export const getUserQuizAttempts = async (req, res) => {
         if (!quiz) return attempt;
         // console.log('quiz', quiz);
 
+        console.log('quiz.score', quiz.score);
+
         return {
           userId: attempt.userId,
           id: attempt._id,

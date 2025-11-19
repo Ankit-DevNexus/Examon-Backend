@@ -158,7 +158,7 @@ export const login = async (req, res) => {
 // get all users
 export const getAllUsers = async (req, res) => {
   try {
-    const { page = 1, limit = 1 } = req.query;
+    const { page = 1, limit = 10 } = req.query;
 
     const skip = (page - 1) * limit;
 

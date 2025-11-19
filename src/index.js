@@ -12,7 +12,7 @@ const PORT = process.env.PORT;
 
 ConnectDB(process.env.MONGO_DB_URI);
 
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'https://examon-education.vercel.app'];
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'https://examon-education.vercel.app', 'http://194.238.18.1'];
 
 app.use(
   cors({
