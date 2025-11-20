@@ -101,6 +101,7 @@ import {
   uploadHomePageQuiz,
 } from '../controllers/quizHomePageController.js';
 import { createNotification, getLatestNotification } from '../controllers/notificationController.js';
+import { getLatestDiscountNotification, notificationOfferController } from '../controllers/notificationOfferController.js';
 
 const router = express.Router();
 
@@ -262,5 +263,8 @@ router.get('/totalcount', totalCountController);
 // ------------------------------------ Notification ------------------------------------
 router.post('/notification/create', createNotification);
 router.get('/notification/latest', getLatestNotification);
+
+router.post('/notifications/push', Authenticate, notificationOfferController);
+router.get('/notifications/discount/latest', getLatestDiscountNotification);
 
 export default router;
