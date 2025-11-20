@@ -23,7 +23,7 @@ export const notificationOfferController = async (req, res) => {
 
 export const getLatestDiscountNotification = async (req, res) => {
   try {
-    const notification = await notificationOfferModel.findOne().sort({ createdAt: -1 }); // latest first
+    const notification = await notificationOfferModel.find().sort({ createdAt: -1 }); // latest first
 
     res.status(200).json({
       success: true,

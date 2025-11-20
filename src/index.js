@@ -17,7 +17,7 @@ const server = http.createServer(app);
 // SOCKET.IO SETUP
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: ['http://localhost:5173', 'http://localhost:5174', 'https://examon-education.vercel.app', 'http://194.238.18.1'],
     methods: ['GET', 'POST'],
   },
 });
@@ -62,12 +62,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
+// ROUTES
+app.use('/api', Routes);
+
 app.get('/', (req, res) => {
   res.status(200).json({ message: 'API is running' });
 });
-
-// ROUTES
-app.use('/api', Routes);
 
 // START SERVER (Socket.IO + Express)
 server.listen(PORT, () => {
