@@ -101,6 +101,7 @@ import {
   uploadHomePageQuiz,
 } from '../controllers/quizHomePageController.js';
 import { createNotification, getLatestNotification } from '../controllers/notificationController.js';
+import { getLatestDiscountNotification, notificationOfferController } from '../controllers/notificationOfferController.js';
 
 const router = express.Router();
 
@@ -257,11 +258,13 @@ router.patch('/blogs/update/:id', Authenticate, upload.single('featuredImage'), 
 router.delete('/blogs/delete/:id', Authenticate, DeleteBlogController);
 
 // ------------------------------------ total count ------------------------------------
-
 router.get('/totalcount', totalCountController);
 
 // ------------------------------------ Notification ------------------------------------
-
 router.post('/notification/create', createNotification);
 router.get('/notification/latest', getLatestNotification);
+
+router.post('/notifications/push', Authenticate, notificationOfferController);
+router.get('/notifications/discount/latest', getLatestDiscountNotification);
+
 export default router;

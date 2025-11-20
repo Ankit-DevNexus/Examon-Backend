@@ -128,7 +128,6 @@ export const getAttemptsByUserId = async (req, res) => {
         return {
           quizId: attempt.quizId,
           quizTitle: quiz.title,
-          quizTotalMarks: quiz.totalMarks,
           score: attempt.score,
           totalMarks: attempt.totalMarks,
           attemptedAt: attempt.attemptedAt,
