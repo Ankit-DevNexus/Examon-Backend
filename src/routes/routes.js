@@ -257,11 +257,10 @@ router.patch('/blogs/update/:id', Authenticate, upload.single('featuredImage'), 
 router.delete('/blogs/delete/:id', Authenticate, DeleteBlogController);
 
 // ------------------------------------ total count ------------------------------------
-
 router.get('/totalcount', totalCountController);
 
 // ------------------------------------ Notification ------------------------------------
-
 router.post('/notification/create', createNotification);
 router.get('/notification/latest', getLatestNotification);
+
 export default router;

@@ -146,6 +146,3 @@
         "image": "https://res.cloudinary.com/dt4ohfuwc/image/upload/v1760590838/Picture9_khn89v.png"
     }
 ]
-
-
- 
