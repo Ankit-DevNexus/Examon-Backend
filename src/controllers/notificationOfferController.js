@@ -37,3 +37,33 @@ export const getLatestDiscountNotification = async (req, res) => {
     });
   }
 };
+
+export const deleteDiscountNotification = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deletedNotification = await notificationOfferModel.findByIdAndDelete(id);
+
+    if (!deletedNotification) {
+      return res.status(404).json({
+        success: false,
+        message: 'Notification not found',
+      });
+    }
+
+    // Emit socket event to notify deletion (optional)
+    global._io.emit('delete_notification', { id });
+
+    res.status(200).json({
+      success: true,
+      message: 'Notification deleted successfully',
+      data: deletedNotification,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete notification',
+      error: error.message,
+    });
+  }
+};
