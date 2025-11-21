@@ -1,3 +1,4 @@
+import { generateOTP, sendVerificationOTP } from '../helpers/otpHelper.js';
 import userModel from '../models/userModel.js';
 
 export const verifyOTP = async (req, res) => {
