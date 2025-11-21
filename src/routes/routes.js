@@ -106,7 +106,11 @@ import {
   getLatestNotification,
   updateNotification,
 } from '../controllers/notificationController.js';
-import { getLatestDiscountNotification, notificationOfferController } from '../controllers/notificationOfferController.js';
+import {
+  deleteDiscountNotification,
+  getLatestDiscountNotification,
+  notificationOfferController,
+} from '../controllers/notificationOfferController.js';
 
 const router = express.Router();
 
@@ -268,10 +272,13 @@ router.get('/totalcount', totalCountController);
 // ------------------------------------ Notification ------------------------------------
 router.post('/notification/create', Authenticate, upload.single('image'), createNotification);
 router.get('/notification/latest', getLatestNotification);
+router.put('/notification/:id', upload.single('image'), updateNotification);
+router.delete('/notification/delete/:id', Authenticate, deleteNotification);
+
+// ------------------------------------ Offer Notification ------------------------------------
 
 router.post('/notifications/push', Authenticate, notificationOfferController);
 router.get('/notifications/discount/latest', getLatestDiscountNotification);
-router.put('/notification/:id', upload.single('image'), updateNotification);
-router.delete('/notification/:id', deleteNotification);
+router.delete('/notification/discount/delete/:id', Authenticate, deleteDiscountNotification);
 
 export default router;
