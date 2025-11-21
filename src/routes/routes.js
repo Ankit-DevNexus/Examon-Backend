@@ -272,6 +272,6 @@ router.get('/notification/latest', getLatestNotification);
 router.post('/notifications/push', Authenticate, notificationOfferController);
 router.get('/notifications/discount/latest', getLatestDiscountNotification);
 router.put('/notification/:id', upload.single('image'), updateNotification);
-router.delete('/notification/:id', deleteNotification);
+router.delete('/notification/delete/:id', Authenticate, deleteNotification);
 
 export default router;
