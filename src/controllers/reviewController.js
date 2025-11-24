@@ -119,33 +119,23 @@ export const updateReview = async (req, res) => {
     const { id } = req.params;
     const { clientname, star, review, course, status } = req.body;
 
-    // Validate review ID
     if (!id) {
-      return res.status(400).json({
-        success: false,
-        message: 'Review ID is required.',
-      });
+      return res.status(400).json({ success: false, message: 'Review ID is required.' });
     }
 
-    // Find existing review
     const existingReview = await ReviewModel.findById(id);
     if (!existingReview) {
-      return res.status(404).json({
-        success: false,
-        message: 'Review not found.',
-      });
+      return res.status(404).json({ success: false, message: 'Review not found.' });
     }
 
-    // Prepare update data
     const updatedData = {};
 
-    if (clientname) updatedData.clientname = clientname;
-    if (review) updatedData.review = review;
-    if (course) updatedData.course = course;
-    if (status) updatedData.status = status;
+    if (clientname !== undefined) updatedData.clientname = clientname;
+    if (review !== undefined) updatedData.review = review;
+    if (course !== undefined) updatedData.course = course;
+    if (status !== undefined) updatedData.status = status;
 
-    // Validate and update star
-    if (star) {
+    if (star !== undefined) {
       const starNumber = Number(star);
       if (isNaN(starNumber) || starNumber < 1 || starNumber > 5) {
         return res.status(400).json({
@@ -156,33 +146,11 @@ export const updateReview = async (req, res) => {
       updatedData.star = starNumber;
     }
 
-    // Handle image update (if new image is uploaded)
-    if (req.file?.path) {
-      const newImagePath = req.file.path;
-
-      // Delete old image from Cloudinary (if exists)
-      if (existingReview.publicId) {
-        try {
-          await cloudinary.uploader.destroy(existingReview.publicId);
-        } catch (cloudErr) {
-          console.error('Error deleting old image from Cloudinary:', cloudErr.message);
-        }
-      }
-
-      // Upload new image to Cloudinary
-      const uploadedImage = await uploadOnCloudinary(newImagePath);
-      if (uploadedImage) {
-        updatedData.profilePicture = uploadedImage.url;
-        updatedData.publicId = uploadedImage.public_id;
-      }
-    }
-
-    // Update review in DB
     const updatedReview = await ReviewModel.findByIdAndUpdate(id, updatedData, {
       new: true,
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: 'Review updated successfully.',
       data: updatedReview,

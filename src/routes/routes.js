@@ -252,8 +252,8 @@ router.delete('/mentors/delete/:id', Authenticate, deleteInstructor);
 router.post('/upload-image', upload.single('upload'), uploadImageController);
 router.post('/exams/details', upload.none(), Authenticate, createExamDetails);
 router.get('/exams/details', getAllExamsDetails);
-router.get('/exams/details/:id', getExamDetailsById);
-router.patch('/exams/details/update/:id', Authenticate, upload.single('upload'), updateExamDetails);
+router.get('/exams/details/:categoryId/:examId', getExamDetailsById);
+router.patch('/exams/details/update/:categoryId/:detailId', Authenticate, upload.single('upload'), updateExamDetails);
 router.delete('/exams/details/delete/:categoryId', Authenticate, deleteCategoryAndExamsDetails);
 router.delete('/exams/details/delete/:categoryId/:examId', Authenticate, deleteExamDetailsInsideCategory);
 

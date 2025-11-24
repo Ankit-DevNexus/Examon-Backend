@@ -12,18 +12,8 @@ export const createNotification = async (req, res) => {
       });
     }
 
-    let imageUrl = null;
-    let publicId = null;
-
-    // ⬆ Upload image if provided
-    if (req.file) {
-      const uploaded = await uploadOnCloudinary(req.file.path, 'notifications');
-
-      if (uploaded) {
-        imageUrl = uploaded.secure_url;
-        publicId = uploaded.public_id;
-      }
-    }
+    if (!req.file) return res.status(400).json({ success: false, message: 'Image is required' });
+    const uploadResponse = await uploadOnCloudinary(req.file.path, 'notifications');
 
     // ⬆ Create Notification in DB
     const notification = await notificationModel.create({
@@ -32,11 +22,11 @@ export const createNotification = async (req, res) => {
       description,
       link,
       status,
-      image: imageUrl,
-      publicId,
+      image: uploadResponse.url,
+      publicId: uploadResponse.public_id,
     });
 
-    // 🔥 Emit socket event
+    // Emit socket event
     global._io.emit('new-notification', notification);
 
     return res.json({
