@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import ExamModel from '../models/examDetailsModel.js';
 
 // Create Exam
@@ -64,18 +65,26 @@ export const getAllExamsDetails = async (req, res) => {
 //  Get Exam by ID
 export const getExamDetailsById = async (req, res) => {
   try {
-    const { categoryId, examId } = req.params;
+    const { id } = req.params;
 
-    const category = await ExamModel.findById(categoryId);
-    if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid ID format' });
+    }
 
-    const exam = category.examDetails.id(examId);
-    if (!exam) return res.status(404).json({ success: false, message: 'Batch not found' });
+    // Find the parent doc containing this exam detail
+    const parentExam = await ExamModel.findOne({ 'examDetails._id': id });
+
+    if (!parentExam) {
+      return res.status(404).json({ message: 'Exam detail not found' });
+    }
+
+    // Extract the specific subdocument
+    const detail = parentExam.examDetails.id(id);
 
     res.status(200).json({
       success: true,
       message: 'Exam detail fetched successfully',
-      data: exam,
+      data: detail,
     });
   } catch (err) {
     console.error('Error fetching exam detail:', err);
@@ -86,68 +95,39 @@ export const getExamDetailsById = async (req, res) => {
 //  Update Exam
 export const updateExamDetails = async (req, res) => {
   try {
-    const { categoryId, detailId } = req.params;
+    const { id } = req.params;
     const { title, Content } = req.body;
 
-    if (!categoryId || !detailId) {
-      return res.status(400).json({
-        success: false,
-        message: 'categoryId and detailId are required',
-      });
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid exam detail ID' });
     }
 
-    // Prepare update object
-    const updatedData = {};
-    if (title !== undefined) updatedData['examDetails.$.title'] = title;
-    if (Content !== undefined) updatedData['examDetails.$.Content'] = Content;
-
-    // Update using positional operator $
-    const updatedCategory = await ExamModel.findOneAndUpdate(
-      { _id: categoryId, 'examDetails._id': detailId },
-      { $set: updatedData },
-      { new: true },
-    );
-
-    if (!updatedCategory) {
-      return res.status(404).json({
-        success: false,
-        message: 'Exam detail not found',
-      });
+    // Find the parent document containing this exam detail
+    const parentExam = await ExamModel.findOne({ 'examDetails._id': id });
+    if (!parentExam) {
+      return res.status(404).json({ success: false, message: 'Exam detail not found' });
     }
+
+    // Get the specific subdocument
+    const examDetail = parentExam.examDetails.id(id);
+    if (!examDetail) {
+      return res.status(404).json({ success: false, message: 'Exam detail not found' });
+    }
+
+    // Update fields
+    if (title?.trim()) examDetail.title = title.trim();
+    if (Content?.trim()) examDetail.Content = Content.trim();
+
+    // Save parent document
+    await parentExam.save();
 
     res.status(200).json({
       success: true,
       message: 'Exam detail updated successfully',
-      data: updatedCategory,
+      updatedDetail: examDetail,
     });
   } catch (error) {
-    console.log('Error updating exam detail:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message,
-    });
-  }
-};
-
-//  Delete Exam
-export const deleteCategoryAndExamsDetails = async (req, res) => {
-  try {
-    const { categoryId } = req.params;
-
-    const category = await ExamModel.findById(categoryId);
-    if (!category) {
-      return res.status(404).json({ success: false, message: 'Category not found' });
-    }
-
-    await ExamModel.findByIdAndDelete(categoryId);
-
-    res.status(200).json({
-      success: true,
-      message: 'Category and all exams deleted successfully',
-    });
-  } catch (error) {
-    console.error('Error deleting category:', error);
+    console.error('Error updating exam detail:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',
@@ -158,39 +138,48 @@ export const deleteCategoryAndExamsDetails = async (req, res) => {
 
 export const deleteExamDetailsInsideCategory = async (req, res) => {
   try {
-    const { categoryId, examId } = req.params;
+    const { examId } = req.params;
 
-    const category = await ExamModel.findById(categoryId);
+    if (!mongoose.Types.ObjectId.isValid(examId)) {
+      return res.status(400).json({ success: false, message: 'Invalid exam detail ID' });
+    }
+
+    // Find the parent category where this exam detail exists
+    const category = await ExamModel.findOne({ 'examDetails._id': examId });
+
     if (!category) {
-      return res.status(404).json({ success: false, message: 'Category not found' });
+      return res.status(404).json({ success: false, message: 'Exam detail not found' });
     }
 
-    const exam = category.examDetails.id(examId);
-    if (!exam) {
-      return res.status(404).json({ success: false, message: 'Exam not found in this category' });
+    // Get the specific exam inside the category
+    const examDetail = category.examDetails.id(examId);
+
+    if (!examDetail) {
+      return res.status(404).json({ success: false, message: 'Exam detail not found' });
     }
 
-    exam.deleteOne();
+    // Remove the exam detail
+    examDetail.deleteOne();
 
-    // If this was the last exam, delete category instead of saving
+    // If category becomes empty → delete entire category
     if (category.examDetails.length === 0) {
-      await ExamModel.findByIdAndDelete(categoryId);
+      await ExamModel.findByIdAndDelete(category._id);
 
       return res.status(200).json({
         success: true,
-        message: 'Last exam deleted — category also removed successfully',
+        message: 'Exam deleted. Category removed because no exams left.',
       });
     }
 
-    // Otherwise, save updated category
+    // Otherwise, save modifications
     await category.save();
 
     res.status(200).json({
       success: true,
-      message: 'Exam deleted successfully from category',
+      message: 'Exam detail deleted successfully',
     });
   } catch (error) {
-    console.error('Error deleting exam inside category:', error);
+    console.error('Error deleting exam detail:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error',
@@ -198,6 +187,75 @@ export const deleteExamDetailsInsideCategory = async (req, res) => {
     });
   }
 };
+
+//  Delete Exam
+// export const deleteCategoryAndExamsDetails = async (req, res) => {
+//   try {
+//     const { categoryId } = req.params;
+
+//     const category = await ExamModel.findById(categoryId);
+//     if (!category) {
+//       return res.status(404).json({ success: false, message: 'Category not found' });
+//     }
+
+//     await ExamModel.findByIdAndDelete(categoryId);
+
+//     res.status(200).json({
+//       success: true,
+//       message: 'Category and all exams deleted successfully',
+//     });
+//   } catch (error) {
+//     console.error('Error deleting category:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Internal server error',
+//       error: error.message,
+//     });
+//   }
+// };
+
+// export const deleteExamDetailsInsideCategory = async (req, res) => {
+//   try {
+//     const { categoryId, examId } = req.params;
+
+//     const category = await ExamModel.findById(categoryId);
+//     if (!category) {
+//       return res.status(404).json({ success: false, message: 'Category not found' });
+//     }
+
+//     const exam = category.examDetails.id(examId);
+//     if (!exam) {
+//       return res.status(404).json({ success: false, message: 'Exam not found in this category' });
+//     }
+
+//     exam.deleteOne();
+
+//     // If this was the last exam, delete category instead of saving
+//     if (category.examDetails.length === 0) {
+//       await ExamModel.findByIdAndDelete(categoryId);
+
+//       return res.status(200).json({
+//         success: true,
+//         message: 'Last exam deleted — category also removed successfully',
+//       });
+//     }
+
+//     // Otherwise, save updated category
+//     await category.save();
+
+//     res.status(200).json({
+//       success: true,
+//       message: 'Exam deleted successfully from category',
+//     });
+//   } catch (error) {
+//     console.error('Error deleting exam inside category:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Internal server error',
+//       error: error.message,
+//     });
+//   }
+// };
 
 // import ExamModel from '../models/examDetailsModel.js';
 
