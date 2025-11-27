@@ -130,6 +130,7 @@ export const getAllContacts = async (req, res) => {
     });
   }
 };
+
 // import nodemailer from 'nodemailer';
 
 // export const ContactUsController = async (req, res) => {

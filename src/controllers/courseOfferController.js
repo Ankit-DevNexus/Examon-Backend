@@ -63,7 +63,6 @@ export const createCourseOffer = async (req, res) => {
 };
 
 // READ all
-
 export const getAllCourseOffers = async (req, res) => {
   try {
     let { page = 1, limit = 10, search = '' } = req.query;
