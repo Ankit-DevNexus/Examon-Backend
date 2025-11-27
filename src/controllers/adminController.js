@@ -39,12 +39,21 @@ export const adminLogin = async (req, res) => {
     }
 
     const user = await userModel.findOne({ email });
-    if (!user) return res.status(400).json({ msg: 'User not found' });
+    if (!user) {
+      return res.status(400).json({ msg: 'User not found' });
+    }
+
+    // ROLE CHECK
+    if (user.role !== 'admin') {
+      return res.status(403).json({ msg: 'Access denied. Admins only.' });
+    }
 
     const isMatch = await user.comparePassword(password);
-    if (!isMatch) return res.status(401).json({ msg: 'Invalid credentials' });
+    if (!isMatch) {
+      return res.status(401).json({ msg: 'Invalid credentials' });
+    }
 
-    // Generate access & refresh tokens (PASS ONLY user._id)
+    // Generate access & refresh tokens
     const { accessToken, refreshToken } = generateToken(user._id);
 
     user.refreshToken = refreshToken;
@@ -62,21 +71,72 @@ export const adminLogin = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
 
     const userData = user.toObject();
     delete userData.password;
 
     res.status(200).json({
-      message: 'Login successful',
+      message: 'Admin login successful',
       accessToken,
       user: userData,
     });
   } catch (error) {
-    res.status(500).json({ msg: 'Server error during login', error: error.message });
+    res.status(500).json({
+      msg: 'Server error during login',
+      error: error.message,
+    });
   }
 };
+
+// export const adminLogin = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     if (!email || !password) {
+//       return res.status(400).json({ msg: 'Email and password are required' });
+//     }
+
+//     const user = await userModel.findOne({ email });
+//     if (!user) return res.status(400).json({ msg: 'User not found' });
+
+//     const isMatch = await user.comparePassword(password);
+//     if (!isMatch) return res.status(401).json({ msg: 'Invalid credentials' });
+
+//     // Generate access & refresh tokens (PASS ONLY user._id)
+//     const { accessToken, refreshToken } = generateToken(user._id);
+
+//     user.refreshToken = refreshToken;
+//     user.lastLogin = new Date();
+//     user.loginHistory.push({
+//       loginAt: user.lastLogin,
+//       ip: req.ip,
+//       userAgent: req.headers['user-agent'],
+//     });
+
+//     await user.save();
+
+//     // Store refresh token in secure cookie
+//     res.cookie('refreshToken', refreshToken, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === 'production',
+//       sameSite: 'strict',
+//       maxAge: 30 * 24 * 60 * 60 * 1000,
+//     });
+
+//     const userData = user.toObject();
+//     delete userData.password;
+
+//     res.status(200).json({
+//       message: 'Login successful',
+//       accessToken,
+//       user: userData,
+//     });
+//   } catch (error) {
+//     res.status(500).json({ msg: 'Server error during login', error: error.message });
+//   }
+// };
 
 // export const adminLogin = async (req, res) => {
 //   try {
