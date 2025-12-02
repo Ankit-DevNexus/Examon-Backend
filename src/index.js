@@ -22,12 +22,18 @@ const io = new Server(server, {
       'http://localhost:5174',
       'https://examon-education.vercel.app',
       'http://194.238.18.1',
+
+      'http://palgharhome.com',
       'https://palgharhome.com',
+      'http://www.palgharhome.com',
       'https://www.palgharhome.com',
+
+      'http://dashboard.palgharhome.com',
       'https://dashboard.palgharhome.com',
+      'http://www.dashboard.palgharhome.com',
       'https://www.dashboard.palgharhome.com',
     ],
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   },
 });
 
@@ -53,9 +59,15 @@ const allowedOrigins = [
   'http://localhost:5174',
   'https://examon-education.vercel.app',
   'http://194.238.18.1',
+
+  'http://palgharhome.com',
   'https://palgharhome.com',
+  'http://www.palgharhome.com',
   'https://www.palgharhome.com',
+
+  'http://dashboard.palgharhome.com',
   'https://dashboard.palgharhome.com',
+  'http://www.dashboard.palgharhome.com',
   'https://www.dashboard.palgharhome.com',
 ];
 
@@ -74,9 +86,9 @@ app.use(
   }),
 );
 
-app.use(express.json());
 app.use(cookieParser());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));

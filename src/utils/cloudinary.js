@@ -15,7 +15,7 @@ const uploadOnCloudinary = async (localFilePath, folder = 'general_uploads') => 
     if (!localFilePath) return null;
 
     const response = await cloudinary.uploader.upload(localFilePath, {
-      resource_type: 'auto', // auto detects image/pdf/video/etc.
+      resource_type: 'raw', // auto detects image/pdf/video/etc.
       folder, // upload to the specified folder
       timeout: 10000, // 10 seconds
     });
