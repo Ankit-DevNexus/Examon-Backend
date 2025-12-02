@@ -110,26 +110,69 @@ export const updateExamNotes = async (req, res) => {
   }
 };
 
+// // DELETE A NOTE
+// export const deleteExamNotes = async (req, res) => {
+//   try {
+//     const { categoryId, noteId } = req.params;
+//     const category = await StudyMaterial.findById(categoryId);
+
+//     if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
+
+//     const note = category.notes.id(noteId);
+//     if (!note) return res.status(404).json({ success: false, message: 'Note not found' });
+
+//     // Delete from Cloudinary
+//     if (note.publicId) {
+//       await cloudinary.uploader.destroy(note.publicId, { resource_type: 'raw' });
+//     }
+
+//     note.deleteOne(); // remove from array
+//     await category.save();
+
+//     res.status(200).json({ success: true, message: 'Note deleted successfully' });
+//   } catch (error) {
+//     console.error('Error deleting note:', error);
+//     res.status(500).json({ success: false, message: error.message });
+//   }
+// };
 // DELETE A NOTE
 export const deleteExamNotes = async (req, res) => {
   try {
     const { categoryId, noteId } = req.params;
-    const category = await StudyMaterial.findById(categoryId);
 
+    const category = await StudyMaterial.findById(categoryId);
     if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
 
     const note = category.notes.id(noteId);
     if (!note) return res.status(404).json({ success: false, message: 'Note not found' });
 
-    // Delete from Cloudinary
+    // Delete file from Cloudinary
     if (note.publicId) {
-      await cloudinary.uploader.destroy(note.publicId, { resource_type: 'raw' });
+      await cloudinary.uploader.destroy(note.publicId, {
+        resource_type: 'raw',
+      });
     }
 
-    note.deleteOne(); // remove from array
+    // Remove note from notes array
+    note.deleteOne();
+
+    // If no notes left → delete entire category
+    if (category.notes.length === 0) {
+      await StudyMaterial.findByIdAndDelete(categoryId);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Last note deleted. Category removed successfully',
+      });
+    }
+
+    //  Otherwise just save updated category
     await category.save();
 
-    res.status(200).json({ success: true, message: 'Note deleted successfully' });
+    res.status(200).json({
+      success: true,
+      message: 'Note deleted successfully',
+    });
   } catch (error) {
     console.error('Error deleting note:', error);
     res.status(500).json({ success: false, message: error.message });
