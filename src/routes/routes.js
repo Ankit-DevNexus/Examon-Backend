@@ -111,6 +111,7 @@ import {
   getLatestDiscountNotification,
   notificationOfferController,
 } from '../controllers/notificationOfferController.js';
+import { forgotPassword, resetPassword } from '../controllers/ForgetPasswordController.js';
 
 const router = express.Router();
 
@@ -136,6 +137,10 @@ router.get('/users/all', Authenticate, getAllUsers);
 
 // ---------------- change password ---------------------------
 router.patch('/change-password', Authenticate, changePasswordController);
+
+
+router.post('/forgot-password', forgotPassword);
+router.patch('/reset-password/:token', resetPassword);
 
 // --------------------------- contact us  ----------------------------
 router.post('/contact-us', ContactUsController);
