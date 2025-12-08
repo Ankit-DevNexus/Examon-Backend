@@ -7,14 +7,15 @@ const batchSchema = new mongoose.Schema(
     duration: { type: String },
     price: { type: Number },
     teachers: [{ type: String }],
+
+    images: [{ type: String }],      
+    publicIds: [{ type: String }],   
+
     enrollLink: { type: String },
-    image: { type: String },
-    publicId: { type: String },
   },
   { timestamps: true },
 );
 
-// category that holds many courses
 const batchesCategorySchema = new mongoose.Schema(
   {
     batchCategory: { type: String, unique: true, lowercase: true },

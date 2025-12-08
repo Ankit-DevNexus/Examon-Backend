@@ -9,28 +9,30 @@ export const addBatchToCategory = async (req, res) => {
   try {
     const { batchCategory, batchName, syllabus, duration, price, teachers, enrollLink } = req.body;
 
-    // Validate image
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: 'Image file is required' });
+    const files = req.files?.images || []; // FIXED
+
+    if (files.length === 0) {
+      return res.status(400).json({ success: false, message: 'At least one image is required' });
     }
 
-    // Upload to Cloudinary
-    const uploadedImage = await uploadOnCloudinary(req.file.path, 'Batch_images');
-    if (!uploadedImage) {
-      return res.status(500).json({ success: false, message: 'Image upload failed' });
-    }
+    const uploadedImages = await Promise.all(
+      files.map(async (file) => {
+        const upload = await uploadOnCloudinary(file.path, 'Batch_images');
+        return {
+          url: upload.url,
+          publicId: upload.public_id,
+        };
+      })
+    );
 
-    //Find or create the category document
-    let existingCategory = await liveBatchModel.findOne({ batchCategory: batchCategory });
+    let existingCategory = await liveBatchModel.findOne({ batchCategory });
     if (!existingCategory) {
-      existingCategory = new liveBatchModel({ batchCategory: batchCategory, batches: [] });
+      existingCategory = new liveBatchModel({ batchCategory, batches: [] });
     }
 
-    //  Push new course inside that category
     existingCategory.batches.push({
-      image: uploadedImage.url,
-      publicId: uploadedImage.public_id || '',
-      batchCategory,
+      images: uploadedImages.map((img) => img.url),
+      publicIds: uploadedImages.map((img) => img.publicId),
       batchName,
       syllabus,
       duration,
@@ -41,15 +43,12 @@ export const addBatchToCategory = async (req, res) => {
 
     const saved = await existingCategory.save();
 
-    res.status(201).json({
-      success: true,
-      message: 'Batch added successfully',
-      category: saved,
-    });
+    res.status(201).json({ success: true, message: 'Batch added successfully', category: saved });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error adding batch', error: error.message });
   }
 };
+
 
 //Get all categories with batches
 export const getAllCategories = async (req, res) => {

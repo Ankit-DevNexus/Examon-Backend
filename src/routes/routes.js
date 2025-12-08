@@ -112,6 +112,7 @@ import {
   notificationOfferController,
 } from '../controllers/notificationOfferController.js';
 import { forgotPassword, resetPassword } from '../controllers/ForgetPasswordController.js';
+import { deleteSubUser, editSubUser, resendSubUserOTP, subUserlogin, subUserSignup, verifySubUserOTP } from '../controllers/subUserController.js';
 
 const router = express.Router();
 
@@ -120,10 +121,23 @@ router.post('/admin/signup', adminSignup);
 router.post('/admin/signin', adminLogin);
 router.post('/logout', Authenticate, logout);
 
+
+
+// sub user Admin
+router.post('/admin/subuser/signup', Authenticate, subUserSignup);
+router.post('/admin/subuser/signin', subUserlogin);
+router.patch("/admin/subuser/edit/:id", Authenticate,  editSubUser);
+router.delete("/admin/subuser/delete/:id", Authenticate, deleteSubUser);
+
+// verify otp for sub user
+router.post("/subuser/verify-otp", verifySubUserOTP);
+router.post("/subuser/resend-otp", resendSubUserOTP);
 // ---------------- OTP verification ---------------------------
 
 router.post('/verify-otp', verifyOTP);
 router.post('/resend-otp', resendOTP);
+
+
 
 // client (users)
 router.post('/signup', signup);
@@ -226,7 +240,19 @@ router.delete('/notes/delete/:categoryId/:noteId', deleteExamNotes);
 
 // ------------------------------------ Live batches ------------------------------------
 // ROUTES
-router.post('/live/batches', Authenticate, upload.single('image'), addBatchToCategory); // add batch (and upload image)
+router.post(
+  '/live/batches',
+  Authenticate,
+  upload.fields(
+    [
+      { name: 'image1', maxCount: 1 },
+      { name: 'image2', maxCount: 1 },
+    
+    ]),
+
+  addBatchToCategory
+);
+// add batch (and upload image)
 router.get('/live/batches', getAllCategories); // get all categories
 router.get('/live/batches/:categoryId', getBatchesByCategory); // get one category’s batches
 router.get('/live/batches/:categoryId/:batchId', getSingleBatch); // get one category’s batches
