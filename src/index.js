@@ -101,7 +101,7 @@ app.get('/', (req, res) => {
 });
 
 // START SERVER (Socket.IO + Express)
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running with Socket.IO on http://localhost:${PORT}`);
 });
 
