@@ -50,6 +50,7 @@ import {
   addBatchToCategory,
   deleteBatchInsideCategory,
   deleteCategory,
+  getAllBatchName,
   getAllCategories,
   getBatchesByCategory,
   getSingleBatch,
@@ -112,7 +113,7 @@ import {
   notificationOfferController,
 } from '../controllers/notificationOfferController.js';
 import { forgotPassword, resetPassword } from '../controllers/ForgetPasswordController.js';
-import { deleteSubUser, editSubUser, resendSubUserOTP, subUserlogin, subUserSignup, verifySubUserOTP } from '../controllers/subUserController.js';
+import { deleteSubUser, editSubUser, getAllSubUser, resendSubUserOTP, subUserlogin, subUserSignup, verifySubUserOTP } from '../controllers/subUserController.js';
 
 const router = express.Router();
 
@@ -126,6 +127,8 @@ router.post('/logout', Authenticate, logout);
 // sub user Admin
 router.post('/admin/subuser/signup', Authenticate, subUserSignup);
 router.post('/admin/subuser/signin', subUserlogin);
+
+router.get('/admin/subuser/get', getAllSubUser);
 router.patch("/admin/subuser/edit/:id", Authenticate,  editSubUser);
 router.delete("/admin/subuser/delete/:id", Authenticate, deleteSubUser);
 
@@ -254,6 +257,7 @@ router.post(
 );
 // add batch (and upload image)
 router.get('/live/batches', getAllCategories); // get all categories
+router.get('/live/batches/name', getAllBatchName); // get all batches name 
 router.get('/live/batches/:categoryId', getBatchesByCategory); // get one category’s batches
 router.get('/live/batches/:categoryId/:batchId', getSingleBatch); // get one category’s batches
 router.patch('/live/batches/update/:categoryId/:batchId', Authenticate, authorize('admin'), upload.single('image'), updateBatch); // update batch

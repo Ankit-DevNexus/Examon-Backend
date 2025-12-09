@@ -7,9 +7,9 @@ dotenv.config();
 //  Create / Add a new batch in a category
 export const addBatchToCategory = async (req, res) => {
   try {
-    const { batchCategory, batchName, syllabus, duration, price, teachers, enrollLink } = req.body;
+    const { batchCategory, batchName, syllabus, duration, price, perks, description, teachers, enrollLink } = req.body;
 
-    const files = req.files?.images || []; // FIXED
+    const files = [...(req.files?.image1 || []), ...(req.files?.image2 || [])];
 
     if (files.length === 0) {
       return res.status(400).json({ success: false, message: 'At least one image is required' });
@@ -22,7 +22,7 @@ export const addBatchToCategory = async (req, res) => {
           url: upload.url,
           publicId: upload.public_id,
         };
-      })
+      }),
     );
 
     let existingCategory = await liveBatchModel.findOne({ batchCategory });
@@ -37,6 +37,8 @@ export const addBatchToCategory = async (req, res) => {
       syllabus,
       duration,
       price,
+      perks,
+      description,
       teachers,
       enrollLink,
     });
@@ -48,7 +50,6 @@ export const addBatchToCategory = async (req, res) => {
     res.status(500).json({ success: false, message: 'Error adding batch', error: error.message });
   }
 };
-
 
 //Get all categories with batches
 export const getAllCategories = async (req, res) => {
@@ -76,6 +77,44 @@ export const getBatchesByCategory = async (req, res) => {
     res.status(500).json({ success: false, message: 'Error fetching batches', error: error.message });
   }
 };
+
+export const getAllBatchName = async (req, res) => {
+  try {
+    // {} - Find ALL documents in the liveBatchModel collection.
+   // "Return only the batchName inside the batches array."
+    const categories = await liveBatchModel.find({}, { "batches.batchName": 1 });
+
+    const batchNames = categories.flatMap(cat =>
+      cat.batches.map(b => b.batchName)
+    );
+
+    res.status(200).json({
+      success: true,
+      total: batchNames.length,
+      batchNames
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching batch names",
+      error: error.message
+    });
+  }
+};
+
+// export const getAllBatchName = async (req, res) => {
+//   try {
+//     const category = await liveBatchModel.find().sort({ createdAt: -1});
+//     if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
+
+//     const batchName = await liveBatchModel.f
+
+//     res.status(200).json({ success: true, batches: category.batches });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: 'Error fetching batches', error: error.message });
+//   }
+// };
 
 // Get a Single Batch by Category and Batch ID
 export const getSingleBatch = async (req, res) => {

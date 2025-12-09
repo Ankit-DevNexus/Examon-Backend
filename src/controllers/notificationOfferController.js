@@ -38,6 +38,8 @@ export const getLatestDiscountNotification = async (req, res) => {
   }
 };
 
+
+
 export const deleteDiscountNotification = async (req, res) => {
   try {
     const { id } = req.params;

@@ -1,6 +1,6 @@
-import { generateToken } from "../config/jwt.js";
-import { generateOTP, sendVerificationOTP } from "../helpers/otpHelper.js";
-import subUserModel from "../models/subUserModel.js";
+import { generateToken } from '../config/jwt.js';
+import { generateOTP, sendVerificationOTP } from '../helpers/otpHelper.js';
+import subUserModel from '../models/subUserModel.js';
 
 //  USER SIGNUP
 export const subUserSignup = async (req, res) => {
@@ -40,7 +40,7 @@ export const subUserSignup = async (req, res) => {
         fullName: newUser.fullName,
         email: newUser.email,
         role: newUser.role,
-        allowedTabs: newUser.allowedTabs
+        allowedTabs: newUser.allowedTabs,
       },
     });
   } catch (error) {
@@ -85,7 +85,6 @@ export const subUserlogin = async (req, res) => {
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
-
     const userData = user.toObject();
     delete userData.password;
 
@@ -98,7 +97,7 @@ export const subUserlogin = async (req, res) => {
         fullname: user.fullName,
         email: user.email,
         role: user.role,
-        allowedTabs: user.allowedTabs
+        allowedTabs: user.allowedTabs,
       },
     });
   } catch (error) {
@@ -107,97 +106,22 @@ export const subUserlogin = async (req, res) => {
   }
 };
 
+// GET all sub user
 
-
-// SUB USER OTP VERIFY
-export const verifySubUserOTP = async (req, res) => {
+export const getAllSubUser = async (req, res) => {
   try {
-    const { email, otp } = req.body;
-
-    if (!email || !otp)
-      return res.status(400).json({ message: "Email and OTP are required." });
-
-    const user = await subUserModel.findOne({ email });
-    if (!user) return res.status(400).json({ message: "Invalid email." });
-
-    if (user.isActive)
-      return res.status(400).json({ message: "Account already verified." });
-
-    if (user.otp !== otp)
-      return res.status(400).json({ message: "Invalid OTP." });
-
-    if (new Date() > new Date(user.otpExpiresAt))
-      return res.status(400).json({ message: "OTP expired." });
-
-    // Activate account
-    user.isActive = true;
-    user.otp = null;
-    user.otpExpiresAt = null;
-    await user.save();
+    const allUser = await subUserModel.find();
 
     res.status(200).json({
-      success: true,
-      message: "Email verified successfully. You can now log in.",
+      message: 'fetched all sub user',
+      data: allUser,
     });
   } catch (error) {
-    console.error("Error verifying OTP:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Server error", error: error.message });
+    console.error('Error getting sub user:', error);
+    res.status(500).json({ msg: 'Server error getting sub user', error: error.message });
   }
 };
-
-
-// SUB USER RESEND OTP
-export const resendSubUserOTP = async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    if (!email)
-      return res.status(400).json({ message: "Email is required." });
-
-    const user = await subUserModel.findOne({ email });
-    if (!user)
-      return res.status(400).json({ message: "Account not found." });
-
-    if (user.isActive)
-      return res.status(400).json({ message: "Account already verified." });
-
-    // Prevent spamming (60 sec limit)
-    if (user.otpExpiresAt) {
-      const lastOtpTime =
-        new Date(user.otpExpiresAt).getTime() - 5 * 60 * 1000;
-      if (Date.now() - lastOtpTime < 60 * 1000) {
-        return res.status(429).json({
-          message: "Please wait 60 seconds before requesting another OTP.",
-        });
-      }
-    }
-
-    const newOtp = generateOTP();
-    const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
-
-    user.otp = newOtp;
-    user.otpExpiresAt = otpExpiresAt;
-    await user.save();
-
-    await sendVerificationOTP(email, newOtp);
-
-    res
-      .status(200)
-      .json({ success: true, message: "New OTP sent successfully." });
-  } catch (error) {
-    console.error("Error resending OTP:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Server error", error: error.message });
-  }
-};
-
-
-// -------------------------------------
-// UPDATE / EDIT SUB USER
-// -------------------------------------
+//  EDIT sub user
 export const editSubUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -205,7 +129,7 @@ export const editSubUser = async (req, res) => {
 
     const user = await subUserModel.findById(id);
     if (!user) {
-      return res.status(404).json({ msg: "Sub User not found" });
+      return res.status(404).json({ msg: 'Sub User not found' });
     }
 
     // Update fullname
@@ -220,7 +144,7 @@ export const editSubUser = async (req, res) => {
     }
 
     // Update active/inactive
-    if (typeof isActive === "boolean") {
+    if (typeof isActive === 'boolean') {
       user.isActive = isActive;
     }
 
@@ -233,20 +157,16 @@ export const editSubUser = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      msg: "User updated successfully",
+      msg: 'User updated successfully',
       user,
     });
-
   } catch (error) {
-    console.error("Update error:", error);
-    res.status(500).json({ msg: "Server error", error: error.message });
+    console.error('Update error:', error);
+    res.status(500).json({ msg: 'Server error', error: error.message });
   }
 };
 
-
-// -------------------------------------
-// DELETE SUB USER
-// -------------------------------------
+// DELETE sub user
 export const deleteSubUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -254,16 +174,85 @@ export const deleteSubUser = async (req, res) => {
     const user = await subUserModel.findByIdAndDelete(id);
 
     if (!user) {
-      return res.status(404).json({ msg: "Sub User not found" });
+      return res.status(404).json({ msg: 'Sub User not found' });
     }
 
     res.status(200).json({
       success: true,
-      msg: "Sub User deleted successfully",
+      msg: 'Sub User deleted successfully',
     });
-
   } catch (error) {
-    console.error("Delete error:", error);
-    res.status(500).json({ msg: "Server error", error: error.message });
+    console.error('Delete error:', error);
+    res.status(500).json({ msg: 'Server error', error: error.message });
+  }
+};
+
+// SUB USER OTP VERIFY
+export const verifySubUserOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) return res.status(400).json({ message: 'Email and OTP are required.' });
+
+    const user = await subUserModel.findOne({ email });
+    if (!user) return res.status(400).json({ message: 'Invalid email.' });
+
+    if (user.isActive) return res.status(400).json({ message: 'Account already verified.' });
+
+    if (user.otp !== otp) return res.status(400).json({ message: 'Invalid OTP.' });
+
+    if (new Date() > new Date(user.otpExpiresAt)) return res.status(400).json({ message: 'OTP expired.' });
+
+    // Activate account
+    user.isActive = true;
+    user.otp = null;
+    user.otpExpiresAt = null;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Email verified successfully. You can now log in.',
+    });
+  } catch (error) {
+    console.error('Error verifying OTP:', error);
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+};
+
+// SUB USER RESEND OTP
+export const resendSubUserOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) return res.status(400).json({ message: 'Email is required.' });
+
+    const user = await subUserModel.findOne({ email });
+    if (!user) return res.status(400).json({ message: 'Account not found.' });
+
+    if (user.isActive) return res.status(400).json({ message: 'Account already verified.' });
+
+    // Prevent spamming (60 sec limit)
+    if (user.otpExpiresAt) {
+      const lastOtpTime = new Date(user.otpExpiresAt).getTime() - 5 * 60 * 1000;
+      if (Date.now() - lastOtpTime < 60 * 1000) {
+        return res.status(429).json({
+          message: 'Please wait 60 seconds before requesting another OTP.',
+        });
+      }
+    }
+
+    const newOtp = generateOTP();
+    const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    user.otp = newOtp;
+    user.otpExpiresAt = otpExpiresAt;
+    await user.save();
+
+    await sendVerificationOTP(email, newOtp);
+
+    res.status(200).json({ success: true, message: 'New OTP sent successfully.' });
+  } catch (error) {
+    console.error('Error resending OTP:', error);
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 };
