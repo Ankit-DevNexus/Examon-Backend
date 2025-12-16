@@ -260,7 +260,13 @@ router.get('/live/batches', getAllCategories); // get all categories
 router.get('/live/batches/name', getAllBatchName); // get all batches name 
 router.get('/live/batches/:categoryId', getBatchesByCategory); // get one category’s batches
 router.get('/live/batches/:categoryId/:batchId', getSingleBatch); // get one category’s batches
-router.patch('/live/batches/update/:categoryId/:batchId', Authenticate, authorize('admin'), upload.single('image'), updateBatch); // update batch
+router.patch('/live/batches/update/:categoryId/:batchId', Authenticate, authorize('admin'),upload.fields(
+    [
+      { name: 'image1', maxCount: 1 },
+      { name: 'image2', maxCount: 1 },
+    
+    ]),updateBatch); // update batch
+    
 router.delete('/live/batches/delete/:categoryId/:batchId', Authenticate, authorize('admin'), deleteBatchInsideCategory); // delete batch
 router.delete('/live/category/delete/:categoryId', Authenticate, authorize('admin'), deleteCategory); // delete category
 
