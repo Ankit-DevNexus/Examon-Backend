@@ -20,7 +20,7 @@ const uploadOnCloudinary = async (localFilePath, folder = 'general_uploads') => 
       timeout: 10000, // 10 seconds
     });
 
-    console.log(` File uploaded to Cloudinary (${folder}):`, response.url);
+    // console.log(` File uploaded to Cloudinary (${folder}):`, response.url);
 
     // Delete local file after upload
     fs.unlinkSync(localFilePath);

@@ -10,7 +10,7 @@ import bodyParser from 'body-parser';
 import { Server } from 'socket.io';
 
 const app = express();
-const PORT = process.env.PORT || 9001;
+const PORT = process.env.PORT || 9002;
 
 const server = http.createServer(app);
 
@@ -23,15 +23,15 @@ const io = new Server(server, {
       'https://examon-education.vercel.app',
       'http://194.238.18.1',
 
-      'http://palgharhome.com',
-      'https://palgharhome.com',
-      'http://www.palgharhome.com',
-      'https://www.palgharhome.com',
+      'http://mastersaab.co.in',
+      'https://mastersaab.co.in',
+      'http://www.mastersaab.co.in',
+      'https://www.mastersaab.co.in',
 
-      'http://dashboard.palgharhome.com',
-      'https://dashboard.palgharhome.com',
-      'http://www.dashboard.palgharhome.com',
-      'https://www.dashboard.palgharhome.com',
+      'http://dashboard.mastersaab.co.in',
+      'https://dashboard.mastersaab.co.in',
+      'http://www.dashboard.mastersaab.co.in',
+      'https://www.dashboard.mastersaab.co.in',
     ],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   },
@@ -42,10 +42,10 @@ global._io = io;
 
 // SOCKET EVENTS
 io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
+  // console.log('User connected:', socket.id);
 
   socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+    // console.log('User disconnected:', socket.id);
   });
 });
 

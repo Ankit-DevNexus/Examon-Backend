@@ -12,7 +12,6 @@ export const createNotification = async (req, res) => {
       });
     }
 
-    if (!req.file) return res.status(400).json({ success: false, message: 'Image is required' });
     const uploadResponse = await uploadOnCloudinary(req.file.path, 'notifications');
 
     // ⬆ Create Notification in DB
