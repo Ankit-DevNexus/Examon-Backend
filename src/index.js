@@ -33,9 +33,14 @@ const io = new Server(server, {
       'http://www.dashboard.mastersaab.co.in',
       'https://www.dashboard.mastersaab.co.in',
     ],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST'],
+    credentials: true,
   },
+
+  transports: ['polling', 'websocket'], 
+  allowEIO3: true, 
 });
+
 
 // STORE IO INSTANCE GLOBALLY
 global._io = io;
@@ -89,8 +94,8 @@ app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+// app.use(bodyParser.json({ limit: '50mb' }));
+// app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 // ROUTES
 app.use('/api', Routes);
@@ -100,6 +105,6 @@ app.get('/', (req, res) => {
 });
 
 // START SERVER (Socket.IO + Express)
-server.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT,  () => {
   console.log(`Server running with Socket.IO on http://localhost:${PORT}`);
 });
