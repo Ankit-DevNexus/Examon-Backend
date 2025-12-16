@@ -57,18 +57,17 @@ ConnectDB(process.env.MONGO_DB_URI);
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
-  'https://examon-education.vercel.app',
   'http://194.238.18.1',
 
-  'http://palgharhome.com',
-  'https://palgharhome.com',
-  'http://www.palgharhome.com',
-  'https://www.palgharhome.com',
+  'http://mastersaab.co.in',
+  'https://mastersaab.co.in',
+  'http://www.mastersaab.co.in',
+  'https://www.mastersaab.co.in',
 
-  'http://dashboard.palgharhome.com',
-  'https://dashboard.palgharhome.com',
-  'http://www.dashboard.palgharhome.com',
-  'https://www.dashboard.palgharhome.com',
+  'http://dashboard.mastersaab.co.in',
+  'https://dashboard.mastersaab.co.in',
+  'http://www.dashboard.mastersaab.co.in',
+  'https://www.dashboard.mastersaab.co.in',
 ];
 
 app.use(
@@ -101,7 +100,6 @@ app.get('/', (req, res) => {
 });
 
 // START SERVER (Socket.IO + Express)
-server.listen(PORT, "0.0.0.0", () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running with Socket.IO on http://localhost:${PORT}`);
 });
-
