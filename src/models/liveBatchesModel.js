@@ -12,6 +12,13 @@ const batchSchema = new mongoose.Schema(
 
     images: [{ type: String }],      
     publicIds: [{ type: String }],   
+    resourceType: [{ type: String }],
+
+    // images: [{
+    //   url: String,
+    //   publicId: String,
+    //   resourceType: String
+    // }],
 
     enrollLink: { type: String },
   },

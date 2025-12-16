@@ -15,13 +15,10 @@ export const addBatchToCategory = async (req, res) => {
       return res.status(400).json({ success: false, message: 'At least one image is required' });
     }
 
-    const uploadedImages = await Promise.all(
+    const uploadedFiles = await Promise.all(
       files.map(async (file) => {
         const upload = await uploadOnCloudinary(file.path, 'Batch_images');
-        return {
-          url: upload.url,
-          publicId: upload.public_id,
-        };
+        return upload;
       }),
     );
 
@@ -31,8 +28,6 @@ export const addBatchToCategory = async (req, res) => {
     }
 
     existingCategory.batches.push({
-      images: uploadedImages.map((img) => img.url),
-      publicIds: uploadedImages.map((img) => img.publicId),
       batchName,
       syllabus,
       duration,
@@ -41,6 +36,10 @@ export const addBatchToCategory = async (req, res) => {
       description,
       teachers,
       enrollLink,
+
+      images: uploadedFiles.map((f) => f.url),
+      publicIds: uploadedFiles.map((f) => f.public_id),
+      resourceType: uploadedFiles.map((f) => f.resource_type), // ✅ FIX
     });
 
     const saved = await existingCategory.save();
@@ -81,24 +80,21 @@ export const getBatchesByCategory = async (req, res) => {
 export const getAllBatchName = async (req, res) => {
   try {
     // {} - Find ALL documents in the liveBatchModel collection.
-   // "Return only the batchName inside the batches array."
-    const categories = await liveBatchModel.find({}, { "batches.batchName": 1 });
+    // "Return only the batchName inside the batches array."
+    const categories = await liveBatchModel.find({}, { 'batches.batchName': 1 });
 
-    const batchNames = categories.flatMap(cat =>
-      cat.batches.map(b => b.batchName)
-    );
+    const batchNames = categories.flatMap((cat) => cat.batches.map((b) => b.batchName));
 
     res.status(200).json({
       success: true,
       total: batchNames.length,
-      batchNames
+      batchNames,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error fetching batch names",
-      error: error.message
+      message: 'Error fetching batch names',
+      error: error.message,
     });
   }
 };
@@ -137,122 +133,212 @@ export const getSingleBatch = async (req, res) => {
 export const updateBatch = async (req, res) => {
   try {
     const { categoryId, batchId } = req.params;
-    console.log('Req', req.body);
 
     const category = await liveBatchModel.findById(categoryId);
-    if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
-
-    const batch = category.batches.id(batchId);
-    if (!batch) return res.status(404).json({ success: false, message: 'Batch not found' });
-
-    // Update image if a new one is uploaded
-    if (req.file) {
-      const imageUrl = await uploadOnCloudinary(req.file.path, 'Batch_images');
-      //   console.log('imageUrl', imageUrl);
-
-      if (imageUrl.url) {
-        batch.image = imageUrl.url;
-        batch.publicId = imageUrl.public_id;
-        await deleteFromCloudinary(batch.publicId);
-      }
+    if (!category) {
+      return res.status(404).json({ success: false, message: 'Category not found' });
     }
 
-    const updatableFields = ['batchName', 'syllabus', 'duration', 'price', 'teachers', 'enrollLink'];
+    const batch = category.batches.id(batchId);
+    if (!batch) {
+      return res.status(404).json({ success: false, message: 'Batch not found' });
+    }
+
+    // ===== UPDATE TEXT FIELDS =====
+    const updatableFields = ['batchName', 'syllabus', 'duration', 'price', 'teachers', 'enrollLink', 'description', 'perks'];
+
     updatableFields.forEach((field) => {
-      if (req.body[field] !== undefined) batch[field] = req.body[field];
+      if (req.body[field] !== undefined) {
+        batch[field] = req.body[field];
+      }
     });
 
+    // ===== UPDATE IMAGES =====
+    if (req.files) {
+      // delete old images
+      if (batch.publicIds?.length) {
+        for (const pid of batch.publicIds) {
+          await deleteFromCloudinary(pid);
+        }
+      }
+
+      const images = [];
+      const publicIds = [];
+
+      if (req.files.image1) {
+        const img1 = await uploadOnCloudinary(req.files.image1[0].path, 'Batch_images');
+        images.push(img1.url);
+        publicIds.push(img1.public_id);
+      }
+
+      if (req.files.image2) {
+        const img2 = await uploadOnCloudinary(req.files.image2[0].path, 'Batch_images');
+        images.push(img2.url);
+        publicIds.push(img2.public_id);
+      }
+
+      batch.images = images;
+      batch.publicIds = publicIds;
+    }
+
     await category.save();
-    res.status(200).json({ success: true, message: 'Batch updated successfully', batch });
+
+    res.status(200).json({
+      success: true,
+      message: 'Batch updated successfully',
+      batch,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error updating batch', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Error updating batch',
+      error: error.message,
+    });
   }
 };
+
+// export const updateBatch = async (req, res) => {
+//   try {
+//     const { categoryId, batchId } = req.params;
+//     console.log('Req', req.body);
+
+//     const category = await liveBatchModel.findById(categoryId);
+//     if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
+
+//     const batch = category.batches.id(batchId);
+//     if (!batch) return res.status(404).json({ success: false, message: 'Batch not found' });
+
+//     // Update image if a new one is uploaded
+//     if (req.files) {
+//       const imageUrl = await uploadOnCloudinary(req.file.path, 'Batch_images');
+//       //   console.log('imageUrl', imageUrl);
+
+//       if (imageUrl.url) {
+//         batch.images = imageUrl.url;
+//         batch.publicIds = imageUrl.public_id;
+//         await deleteFromCloudinary(batch.publicIds);
+//       }
+//     }
+
+//     const updatableFields = ['batchName', 'syllabus', 'duration', 'price','perks', 'description', 'teachers', 'enrollLink'];
+//     updatableFields.forEach((field) => {
+//       if (req.body[field] !== undefined) batch[field] = req.body[field];
+//     });
+
+//     await category.save();
+//     res.status(200).json({ success: true, message: 'Batch updated successfully', batch });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: 'Error updating batch', error: error.message });
+//   }
+// };
 
 //  Delete a specific batch from a category
-export const deleteBatch = async (req, res) => {
-  try {
-    const { categoryId, batchId } = req.params;
-    const category = await liveBatchModel.findById(categoryId);
-    if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
+// export const deleteBatch = async (req, res) => {
+//   try {
+//     const { categoryId, batchId } = req.params;
+//     const category = await liveBatchModel.findById(categoryId);
+//     if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
 
-    category.batches.pull({ _id: batchId });
-    await category.save();
+//     category.batches.pull({ _id: batchId });
+//     await category.save();
 
-    res.status(200).json({ success: true, message: 'Batch deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Error deleting batch', error: error.message });
-  }
-};
+//     res.status(200).json({ success: true, message: 'Batch deleted successfully' });
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: 'Error deleting batch', error: error.message });
+//   }
+// };
 
 //  Delete entire category
+
 export const deleteCategory = async (req, res) => {
   try {
     const { categoryId } = req.params;
-    const category = await liveBatchModel.findByIdAndDelete(categoryId);
 
-    // console.log('category', category);
+    const category = await liveBatchModel.findById(categoryId);
+    if (!category) {
+      return res.status(404).json({
+        success: false,
+        message: 'Category not found',
+      });
+    }
 
-    // console.log('category with batches', category.batches);
+    // 🔥 Delete all files (images / PDFs) from all batches
+    for (const batch of category.batches) {
+      if (batch.publicIds?.length && batch.resourceType?.length) {
+        for (let i = 0; i < batch.publicIds.length; i++) {
+          await deleteFromCloudinary(
+            batch.publicIds[i],
+            batch.resourceType[i]
+          );
+        }
+      }
+    }
 
-    // const allPublicId =
-    category.batches.map((item) => deleteFromCloudinary(item?.publicId));
-    // console.log('allPublicId', allPublicId);
+    // Delete category AFTER Cloudinary cleanup
+    await liveBatchModel.findByIdAndDelete(categoryId);
 
-    res.status(200).json({ success: true, message: 'Category deleted successfully' });
+    res.status(200).json({
+      success: true,
+      message: 'Category and all files deleted successfully',
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error deleting category', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting category',
+      error: error.message,
+    });
   }
 };
+
 
 // DELETE a specific batch from a category
 export const deleteBatchInsideCategory = async (req, res) => {
   try {
     const { categoryId, batchId } = req.params;
 
-    // Find the category
     const category = await liveBatchModel.findById(categoryId);
     if (!category) {
-      return res.status(404).json({ success: false, message: 'Category not found' });
-    }
-
-    // Find the batch inside that category
-    const batch = category.batches.id(batchId);
-    if (!batch) {
-      return res.status(404).json({ success: false, message: 'Batch not found in this category' });
-    }
-
-    // Delete image from Cloudinary
-    if (batch.publicId) {
-      try {
-        await deleteFromCloudinary(batch.publicId);
-      } catch (cloudErr) {
-        console.warn('Cloudinary deletion failed:', cloudErr.message);
-      }
-    }
-
-    // Remove batch from array
-    batch.deleteOne();
-
-    // If this was the last batch → delete the whole category
-    if (category.batches.length === 0) {
-      // (It’s 1 because we haven’t saved yet, and this batch still counts until we do)
-      await liveBatchModel.findByIdAndDelete(categoryId);
-      // console.log('catID', catID);
-
-      return res.status(200).json({
-        success: true,
-        message: 'Batch deleted successfully and category removed as it has no batches left',
+      return res.status(404).json({
+        success: false,
+        message: 'Category not found',
       });
     }
 
-    // Otherwise, just save the updated category
+    const batch = category.batches.id(batchId);
+    if (!batch) {
+      return res.status(404).json({
+        success: false,
+        message: 'Batch not found',
+      });
+    }
+
+    // 🔥 Delete all files for this batch
+    if (batch.publicIds?.length && batch.resourceType?.length) {
+      for (let i = 0; i < batch.publicIds.length; i++) {
+        await deleteFromCloudinary(
+          batch.publicIds[i],
+          batch.resourceType[i]
+        );
+      }
+    }
+
+    batch.deleteOne();
+
+    // If this was the last batch → delete category
+    if (category.batches.length === 0) {
+      await liveBatchModel.findByIdAndDelete(categoryId);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Batch and category deleted successfully',
+      });
+    }
+
     await category.save();
 
     res.status(200).json({
       success: true,
       message: 'Batch deleted successfully',
-      category,
     });
   } catch (error) {
     res.status(500).json({
@@ -262,3 +348,4 @@ export const deleteBatchInsideCategory = async (req, res) => {
     });
   }
 };
+
