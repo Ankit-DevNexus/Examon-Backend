@@ -68,7 +68,7 @@ export const updateNotification = async (req, res) => {
       const uploaded = await uploadOnCloudinary(req.file.path, 'notifications');
 
       if (uploaded) {
-        imageUrl = uploaded.secure_url;
+        imageUrl = uploaded.url;
         // Delete old image from Cloudinary
         if (publicId) {
           await deleteFromCloudinary(publicId);

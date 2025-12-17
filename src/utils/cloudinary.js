@@ -25,7 +25,7 @@ const uploadOnCloudinary = async (localFilePath, folder = 'general_uploads') => 
     fs.unlinkSync(localFilePath);
 
     return {
-      url: response.secure_url,
+      url: response.url,
       public_id: response.public_id,
       resource_type: response.resource_type,
     };

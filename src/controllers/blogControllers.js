@@ -48,7 +48,7 @@ export const BlogController = async (req, res) => {
     const newBlog = new blogModel({
       title,
       blogContent,
-      featuredImage: uploadedImage.secure_url,
+      featuredImage: uploadedImage.url,
       publicId: uploadedImage.public_id,
     });
 
@@ -106,7 +106,7 @@ export const getBlogByIdController = async (req, res) => {
 //       return res.status(500).json({ success: false, message: 'Image upload failed' });
 //     }
 
-//     res.status(200).json({ url: result.secure_url });
+//     res.status(200).json({ url: result.url });
 //   } catch (error) {
 //     console.error(error);
 //     res.status(500).json({ message: 'Image upload failed' });

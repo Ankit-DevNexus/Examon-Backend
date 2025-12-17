@@ -67,7 +67,7 @@ export const updateInstructor = async (req, res) => {
       await deleteFromCloudinary(publicId);
       // Upload new one
       const uploadResponse = await uploadOnCloudinary(req.file.path, 'instructors');
-      imageUrl = uploadResponse.secure_url;
+      imageUrl = uploadResponse.url;
       publicId = uploadResponse.public_id;
     }
 
