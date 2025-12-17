@@ -7,6 +7,8 @@ export const updateProfile = async (req, res) => {
   try {
     const { userId } = req.params;
     const { phone, preferedCourse } = req.body;
+console.log("req.file:", req.file);
+console.log("req.body:", req.body);
 
     // Find existing profile
     const profile = await profileModel.findOne({ userId });
@@ -39,9 +41,9 @@ export const updateProfile = async (req, res) => {
       }
 
       // Update profile image details
-      profile.profileImage = uploadedImage.secure_url;
+      profile.profileImage = uploadedImage.url;
       profile.publicId = uploadedImage.public_id;
-
+   
       // Delete local file safely
       try {
         if (fs.existsSync(localImagePath)) {

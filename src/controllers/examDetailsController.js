@@ -45,7 +45,7 @@ export const uploadImageController = async (req, res) => {
       return res.status(500).json({ success: false, message: 'Image upload failed' });
     }
 
-    res.status(200).json({ url: result.secure_url });
+    res.status(200).json({ url: result.url });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Image upload failed' });
