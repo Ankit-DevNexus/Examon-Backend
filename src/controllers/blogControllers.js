@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
-import { uploadOnCloudinary } from '../utils/cloudinary.js';
+import { deleteFromCloudinary, uploadOnCloudinary } from '../utils/cloudinary.js';
 import { v2 as cloudinary } from 'cloudinary';
 import mongoose from 'mongoose';
 import blogModel from '../models/blogModel.js';
@@ -97,6 +97,7 @@ export const BlogController = async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Blog added successfully',
+      categoryDoc
     });
   } catch (error) {
     console.error(error);
@@ -104,26 +105,16 @@ export const BlogController = async (req, res) => {
   }
 };
 
-// export const AllBlogController = async (req, res) => {
-//   try {
-//     const blogs = await blogModel.find().sort({ createdAt: -1 }).limit(10);
-//     res.status(200).json(blogs);
-//   } catch (error) {
-//     res.status(500).json({ message: 'Failed to fetch blogs' });
-//   }
-// };
 export const AllBlogController = async (req, res) => {
   try {
-    const categories = await blogModel.find();
+    const categories = await blogModel.find().sort({ createdAt: -1 });
 
-    const blogs = categories.flatMap(cat =>
-      cat.blogs.map(blog => ({
-        ...blog.toObject(),
-        category: cat.blogCategory,
-      }))
-    );
-
-    res.status(200).json(blogs);
+  
+ res.status(200).json({
+      success: true,
+      totalCategory: categories.length,
+      categories,
+    });
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch blogs' });
   }
@@ -331,22 +322,42 @@ export const EditBlogController = async (req, res) => {
 //     });
 //   }
 // };
+
 export const DeleteBlogController = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Find category containing this blog
     const category = await blogModel.findOne({ 'blogs._id': id });
     if (!category) {
       return res.status(404).json({ message: 'Blog not found' });
     }
 
+    // Find blog inside category
     const blog = category.blogs.id(id);
+    if (!blog) {
+      return res.status(404).json({ message: 'Blog not found' });
+    }
 
-    // Delete image
-    await cloudinary.uploader.destroy(blog.publicId);
+    // 1️⃣ Delete image from Cloudinary
+    if (blog.publicId && blog.resourceType) {
+      await deleteFromCloudinary(blog.publicId, blog.resourceType);
+    }
 
-    // Remove blog
-    blog.remove();
+    // 2️⃣ Remove blog from array
+    category.blogs.pull(blog._id);
+
+    // 3️⃣ If no blogs left → delete entire category
+    if (category.blogs.length === 0) {
+      await blogModel.findByIdAndDelete(category._id);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Blog deleted and category removed (no blogs left)',
+      });
+    }
+
+    // 4️⃣ Otherwise save updated category
     await category.save();
 
     res.status(200).json({
@@ -354,7 +365,8 @@ export const DeleteBlogController = async (req, res) => {
       message: 'Blog deleted successfully',
     });
   } catch (error) {
-    console.error(error);
+    console.error('Delete blog error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
