@@ -7,7 +7,7 @@ const instructorSchema = new mongoose.Schema(
     name: { type: String },
     subjectTaught: { type: String },
     experience: { type: String },
-    CoursesHandled: { type: [String], default: [] },
+    CoursesHandled: [{ type: String, default: [] }],
     specialization: { type: String },
     description: { type: String },
     youtubeLink: { type: String },
