@@ -7,7 +7,8 @@ dotenv.config();
 //  Create / Add a new batch in a category
 export const addBatchToCategory = async (req, res) => {
   try {
-    const { batchCategory, batchName, syllabus, duration, price, perks, description, teachers, enrollLink } = req.body;
+    const { batchCategory, batchName, syllabus, duration, price, discount, discountPercent, perks, description, teachers, enrollLink } =
+      req.body;
 
     const files = [...(req.files?.image1 || []), ...(req.files?.image2 || [])];
 
@@ -32,6 +33,8 @@ export const addBatchToCategory = async (req, res) => {
       syllabus,
       duration,
       price,
+      discount,
+      discountPercent,
       perks,
       description,
       teachers,
@@ -39,7 +42,7 @@ export const addBatchToCategory = async (req, res) => {
 
       images: uploadedFiles.map((f) => f.url),
       publicIds: uploadedFiles.map((f) => f.public_id),
-      resourceType: uploadedFiles.map((f) => f.resource_type), // ✅ FIX
+      resourceType: uploadedFiles.map((f) => f.resource_type),
     });
 
     const saved = await existingCategory.save();
@@ -266,10 +269,7 @@ export const deleteCategory = async (req, res) => {
     for (const batch of category.batches) {
       if (batch.publicIds?.length && batch.resourceType?.length) {
         for (let i = 0; i < batch.publicIds.length; i++) {
-          await deleteFromCloudinary(
-            batch.publicIds[i],
-            batch.resourceType[i]
-          );
+          await deleteFromCloudinary(batch.publicIds[i], batch.resourceType[i]);
         }
       }
     }
@@ -289,7 +289,6 @@ export const deleteCategory = async (req, res) => {
     });
   }
 };
-
 
 // DELETE a specific batch from a category
 export const deleteBatchInsideCategory = async (req, res) => {
@@ -315,10 +314,7 @@ export const deleteBatchInsideCategory = async (req, res) => {
     // 🔥 Delete all files for this batch
     if (batch.publicIds?.length && batch.resourceType?.length) {
       for (let i = 0; i < batch.publicIds.length; i++) {
-        await deleteFromCloudinary(
-          batch.publicIds[i],
-          batch.resourceType[i]
-        );
+        await deleteFromCloudinary(batch.publicIds[i], batch.resourceType[i]);
       }
     }
 
@@ -348,4 +344,3 @@ export const deleteBatchInsideCategory = async (req, res) => {
     });
   }
 };
-

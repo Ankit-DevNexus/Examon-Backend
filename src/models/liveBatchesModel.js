@@ -6,6 +6,8 @@ const batchSchema = new mongoose.Schema(
     syllabus: { type: String },
     duration: { type: String },
     price: { type: Number },
+    discount: { type: Number },
+    discountPercent: { type: Number },
     perks:{ type: String},
     description: {type: String},
     teachers: [{ type: String }],
