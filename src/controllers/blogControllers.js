@@ -66,7 +66,7 @@ export const BlogController = async (req, res) => {
     console.log('req.body:', req.body);
     console.log('req.file:', req.file);
     
-    if (!title || !blogContent || !blogCategory || !req.file) {
+    if (!title || !blogContent || !blogCategory) {
       return res.status(400).json({ message: 'All fields required' });
     }
 
@@ -79,7 +79,7 @@ export const BlogController = async (req, res) => {
     const blogData = {
       title,
       blogContent,
-      featuredImage: uploadedImage.secure_url,
+      featuredImage: uploadedImage.url,
       publicId: uploadedImage.public_id,
       resourceType: uploadedImage.resource_type,
     };
