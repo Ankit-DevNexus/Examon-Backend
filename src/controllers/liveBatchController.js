@@ -147,7 +147,7 @@ export const updateBatch = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Batch not found' });
     }
 
-    // ===== UPDATE TEXT FIELDS =====
+    // UPDATE TEXT FIELDS 
     const updatableFields = ['batchName', 'syllabus', 'duration', 'price', 'teachers', 'enrollLink', 'description', 'perks'];
 
     updatableFields.forEach((field) => {
@@ -156,7 +156,7 @@ export const updateBatch = async (req, res) => {
       }
     });
 
-    // ===== UPDATE IMAGES =====
+    // UPDATE IMAGES 
     if (req.files) {
       // delete old images
       if (batch.publicIds?.length) {
