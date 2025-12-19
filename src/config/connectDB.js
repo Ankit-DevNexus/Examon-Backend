@@ -9,7 +9,6 @@ export const ConnectDB = async () => {
     console.log('Connected to mongo DB');
   } catch (error) {
     console.log(error);
-    
     console.error('Dashboard DB connection error:', error.message);
   }
 };

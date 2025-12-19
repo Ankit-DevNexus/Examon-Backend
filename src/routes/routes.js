@@ -333,10 +333,10 @@ router.post(
   '/banner/add',
   Authenticate,
   upload.fields([
-    { name: 'image1', maxCount: 1 },
-    { name: 'image2', maxCount: 1 },
-    { name: 'image3', maxCount: 1 },
-    { name: 'image4', maxCount: 1 },
+    { name: 'aboutBanner', maxCount: 1 },
+    { name: 'courseBanner', maxCount: 1 },
+    { name: 'blogBanner', maxCount: 1 },
+    { name: 'contactBanner', maxCount: 1 },
   ]),
   addBanner,
 );
@@ -346,10 +346,10 @@ router.patch(
   '/banners/update/:bannerId',
   Authenticate,
   upload.fields([
-    { name: 'image1', maxCount: 5 },
-    { name: 'image2', maxCount: 5 },
-    { name: 'image3', maxCount: 5 },
-    { name: 'image4', maxCount: 5 },
+    { name: 'aboutBanner', maxCount: 1 },
+    { name: 'courseBanner', maxCount: 1 },
+    { name: 'blogBanner', maxCount: 1 },
+    { name: 'contactBanner', maxCount: 1 },
   ]),
   updateBanner,
 );
