@@ -113,7 +113,16 @@ import {
   notificationOfferController,
 } from '../controllers/notificationOfferController.js';
 import { forgotPassword, resetPassword } from '../controllers/ForgetPasswordController.js';
-import { deleteSubUser, editSubUser, getAllSubUser, resendSubUserOTP, subUserlogin, subUserSignup, verifySubUserOTP } from '../controllers/subUserController.js';
+import {
+  deleteSubUser,
+  editSubUser,
+  getAllSubUser,
+  resendSubUserOTP,
+  subUserlogin,
+  subUserSignup,
+  verifySubUserOTP,
+} from '../controllers/subUserController.js';
+import { addBanner, deleteBanner, getAllBanners, updateBanner } from '../controllers/heroBannerController.js';
 
 const router = express.Router();
 
@@ -122,25 +131,21 @@ router.post('/admin/signup', adminSignup);
 router.post('/admin/signin', adminLogin);
 router.post('/logout', Authenticate, logout);
 
-
-
 // sub user Admin
 router.post('/admin/subuser/signup', Authenticate, subUserSignup);
 router.post('/admin/subuser/signin', subUserlogin);
 
 router.get('/admin/subuser/get', getAllSubUser);
-router.patch("/admin/subuser/edit/:id", Authenticate,  editSubUser);
-router.delete("/admin/subuser/delete/:id", Authenticate, deleteSubUser);
+router.patch('/admin/subuser/edit/:id', Authenticate, editSubUser);
+router.delete('/admin/subuser/delete/:id', Authenticate, deleteSubUser);
 
 // verify otp for sub user
-router.post("/subuser/verify-otp", verifySubUserOTP);
-router.post("/subuser/resend-otp", resendSubUserOTP);
+router.post('/subuser/verify-otp', verifySubUserOTP);
+router.post('/subuser/resend-otp', resendSubUserOTP);
 // ---------------- OTP verification ---------------------------
 
 router.post('/verify-otp', verifyOTP);
 router.post('/resend-otp', resendOTP);
-
-
 
 // client (users)
 router.post('/signup', signup);
@@ -154,7 +159,6 @@ router.get('/users/all', Authenticate, getAllUsers);
 
 // ---------------- change password ---------------------------
 router.patch('/change-password', Authenticate, changePasswordController);
-
 
 router.post('/forgot-password', forgotPassword);
 router.patch('/reset-password/:token', resetPassword);
@@ -246,27 +250,29 @@ router.delete('/notes/delete/:categoryId/:noteId', deleteExamNotes);
 router.post(
   '/live/batches',
   Authenticate,
-  upload.fields(
-    [
-      { name: 'image1', maxCount: 1 },
-      { name: 'image2', maxCount: 1 },
-    
-    ]),
+  upload.fields([
+    { name: 'image1', maxCount: 1 },
+    { name: 'image2', maxCount: 1 },
+  ]),
 
-  addBatchToCategory
+  addBatchToCategory,
 );
 // add batch (and upload image)
 router.get('/live/batches', getAllCategories); // get all categories
-router.get('/live/batches/name', getAllBatchName); // get all batches name 
+router.get('/live/batches/name', getAllBatchName); // get all batches name
 router.get('/live/batches/:categoryId', getBatchesByCategory); // get one category’s batches
 router.get('/live/batches/:categoryId/:batchId', getSingleBatch); // get one category’s batches
-router.patch('/live/batches/update/:categoryId/:batchId', Authenticate, authorize('admin'),upload.fields(
-    [
-      { name: 'image1', maxCount: 1 },
-      { name: 'image2', maxCount: 1 },
-    
-    ]),updateBatch); // update batch
-    
+router.patch(
+  '/live/batches/update/:categoryId/:batchId',
+  Authenticate,
+  authorize('admin'),
+  upload.fields([
+    { name: 'image1', maxCount: 1 },
+    { name: 'image2', maxCount: 1 },
+  ]),
+  updateBatch,
+); // update batch
+
 router.delete('/live/batches/delete/:categoryId/:batchId', Authenticate, authorize('admin'), deleteBatchInsideCategory); // delete batch
 router.delete('/live/category/delete/:categoryId', Authenticate, authorize('admin'), deleteCategory); // delete category
 
@@ -321,5 +327,34 @@ router.delete('/notification/delete/:id', Authenticate, deleteNotification);
 router.post('/notifications/push', Authenticate, notificationOfferController);
 router.get('/notifications/discount/latest', getLatestDiscountNotification);
 router.delete('/notification/discount/delete/:id', Authenticate, deleteDiscountNotification);
+
+// ------------------------------------ All Banners ------------------------------------
+router.post(
+  '/banner/add',
+  Authenticate,
+  upload.fields([
+    { name: 'image1', maxCount: 1 },
+    { name: 'image2', maxCount: 1 },
+    { name: 'image3', maxCount: 1 },
+    { name: 'image4', maxCount: 1 },
+  ]),
+  addBanner,
+);
+
+router.get('/banners/all', getAllBanners);
+router.patch(
+  '/banners/update/:bannerId',
+  Authenticate,
+  upload.fields([
+    { name: 'image1', maxCount: 5 },
+    { name: 'image2', maxCount: 5 },
+    { name: 'image3', maxCount: 5 },
+    { name: 'image4', maxCount: 5 },
+  ]),
+  updateBanner,
+);
+
+
+router.delete('/banners/delete/:bannerId', Authenticate, deleteBanner);
 
 export default router;
