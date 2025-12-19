@@ -59,7 +59,7 @@ export const getAllBanners = async (req, res) => {
 export const updateBanner = async (req, res) => {
   try {
     const { bannerId } = req.params;
-console.log('FILES:', req.files);
+// console.log('FILES:', req.`files);
 
     const banner = await bannersModel.findById(bannerId);
     if (!banner) {
