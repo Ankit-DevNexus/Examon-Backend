@@ -17,10 +17,10 @@ const uploadFiles = async (files) =>
 export const addBanner = async (req, res) => {
   try {
     const banner = await bannersModel.create({
-      aboutBanner: req.files?.image1 ? await uploadFiles(req.files.image1) : [],
-      courseBanner: req.files?.image2 ? await uploadFiles(req.files.image2) : [],
-      blogBanner: req.files?.image3 ? await uploadFiles(req.files.image3) : [],
-      contactBanner: req.files?.image4 ? await uploadFiles(req.files.image4) : [],
+      aboutBanner: req.files?.aboutBanner ? await uploadFiles(req.files.aboutBanner) : [],
+      courseBanner: req.files?.courseBanner ? await uploadFiles(req.files.courseBanner) : [],
+      blogBanner: req.files?.blogBanner ? await uploadFiles(req.files.blogBanner) : [],
+      contactBanner: req.files?.contactBanner ? await uploadFiles(req.files.contactBanner) : [],
     });
 
     res.status(201).json({
@@ -70,40 +70,40 @@ export const updateBanner = async (req, res) => {
     }
 
     //  ABOUT BANNER 
-    if (req.files?.image1) {
+    if (req.files?.aboutBanner) {
       // delete old images
       for (const img of banner.aboutBanner) {
         await deleteFromCloudinary(img.publicId, img.resourceType);
       }
 
-      banner.aboutBanner = await uploadFiles(req.files.image1);
+      banner.aboutBanner = await uploadFiles(req.files.aboutBanner);
     }
 
     //  COURSE BANNER 
-    if (req.files?.image2) {
+    if (req.files?.courseBanner) {
       for (const img of banner.courseBanner) {
         await deleteFromCloudinary(img.publicId, img.resourceType);
       }
 
-      banner.courseBanner = await uploadFiles(req.files.image2);
+      banner.courseBanner = await uploadFiles(req.files.courseBanner);
     }
 
     //  BLOG BANNER 
-    if (req.files?.image3) {
+    if (req.files?.blogBanner) {
       for (const img of banner.blogBanner) {
         await deleteFromCloudinary(img.publicId, img.resourceType);
       }
 
-      banner.blogBanner = await uploadFiles(req.files.image3);
+      banner.blogBanner = await uploadFiles(req.files.blogBanner);
     }
 
     //  CONTACT BANNER 
-    if (req.files?.image4) {
+    if (req.files?.contactBanner) {
       for (const img of banner.contactBanner) {
         await deleteFromCloudinary(img.publicId, img.resourceType);
       }
 
-      banner.contactBanner = await uploadFiles(req.files.image4);
+      banner.contactBanner = await uploadFiles(req.files.contactBanner);
     }
 
     await banner.save();
