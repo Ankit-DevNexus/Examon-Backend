@@ -241,44 +241,122 @@ export const getBlogByIdController = async (req, res) => {
 // };
 
 
+// export const EditBlogController = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { title, blogContent } = req.body;
+
+//     const category = await blogModel.findOne({ 'blogs._id': id });
+//     console.log("category", category);
+    
+//     if (!category) {
+//       return res.status(404).json({ message: 'Blog not found' });
+//     }
+
+//     const blog = category.blogs.id(id);
+//     console.log("blog", blog);
+    
+
+//     if (title) blog.title = title.trim();
+//     if (blogContent) blog.blogContent = blogContent.trim();
+
+//     if (req.file) {
+//       // delete old image
+//       await cloudinary.uploader.destroy(blog.publicId);
+
+//       // upload new
+//       const uploadedImage = await uploadOnCloudinary(req.file.path, 'blogs');
+
+//       blog.featuredImage = uploadedImage.secure_url;
+//       blog.publicId = uploadedImage.public_id;
+//       blog.resourceType = uploadedImage.resource_type;
+//     }
+
+//     await category.save();
+
+//     res.status(200).json({
+//       success: true,
+//       message: 'Blog updated successfully',
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// };
+
+
 export const EditBlogController = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, blogContent } = req.body;
 
-    const category = await blogModel.findOne({ 'blogs._id': id });
-    if (!category) {
-      return res.status(404).json({ message: 'Blog not found' });
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Blog ID is required",
+      });
     }
 
-    const blog = category.blogs.id(id);
+    /* ================= FETCH EXISTING BLOG ================= */
+    const parentDoc = await blogModel.findOne(
+      { "blogs._id": id },
+      { "blogs.$": 1 }
+    );
 
-    if (title) blog.title = title.trim();
-    if (blogContent) blog.blogContent = blogContent.trim();
+    if (!parentDoc || parentDoc.blogs.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Blog not found",
+      });
+    }
 
+    const existingBlog = parentDoc.blogs[0];
+
+    /* ================= PREPARE UPDATE OBJECT ================= */
+    const updateObj = {
+      "blogs.$.title": title,
+      "blogs.$.blogContent": blogContent,
+      "blogs.$.updatedAt": new Date(),
+    };
+
+    /* ================= IMAGE UPDATE LOGIC ================= */
     if (req.file) {
-      // delete old image
-      await cloudinary.uploader.destroy(blog.publicId);
+      // Delete old image if exists
+      if (existingBlog.publicId) {
+        await deleteFromCloudinary(
+          existingBlog.publicId,
+          existingBlog.resourceType || "image"
+        );
+      }
 
-      // upload new
-      const uploadedImage = await uploadOnCloudinary(req.file.path, 'blogs');
+      //Upload new image
+      const upload = await uploadOnCloudinary(req.file.path, "blogs_images");
 
-      blog.featuredImage = uploadedImage.secure_url;
-      blog.publicId = uploadedImage.public_id;
-      blog.resourceType = uploadedImage.resource_type;
+      // Update new image fields
+      updateObj["blogs.$.image"] = upload.url;
+      updateObj["blogs.$.publicId"] = upload.public_id;
+      updateObj["blogs.$.resourceType"] = upload.resource_type;
     }
 
-    await category.save();
+    /* ================= UPDATE BLOG ================= */
+    await blogModel.updateOne(
+      { "blogs._id": id },
+      { $set: updateObj }
+    );
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: 'Blog updated successfully',
+      message: "Blog updated successfully",
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("Update blog error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };
+
 
 
 // export const DeleteBlogController = async (req, res) => {
