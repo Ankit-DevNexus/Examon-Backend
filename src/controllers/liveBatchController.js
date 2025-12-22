@@ -133,6 +133,7 @@ export const getSingleBatch = async (req, res) => {
 };
 
 // Update a specific batch inside a category
+
 export const updateBatch = async (req, res) => {
   try {
     const { categoryId, batchId } = req.params;
@@ -147,8 +148,19 @@ export const updateBatch = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Batch not found' });
     }
 
-    // UPDATE TEXT FIELDS 
-    const updatableFields = ['batchName', 'syllabus', 'duration', 'price', 'teachers', 'enrollLink', 'description', 'perks'];
+    //  UPDATE TEXT FIELDS 
+    const updatableFields = [
+      'batchName',
+      'syllabus',
+      'duration',
+      'price',
+      'perks',
+      'description',
+      'teachers',
+      'enrollLink',
+      'description',
+      'perks',
+    ];
 
     updatableFields.forEach((field) => {
       if (req.body[field] !== undefined) {
@@ -156,32 +168,43 @@ export const updateBatch = async (req, res) => {
       }
     });
 
-    // UPDATE IMAGES 
+    //  UPDATE IMAGES (SELECTIVE) 
     if (req.files) {
-      // delete old images
-      if (batch.publicIds?.length) {
-        for (const pid of batch.publicIds) {
-          await deleteFromCloudinary(pid);
-        }
-      }
+      // Ensure arrays exist
+      if (!batch.images) batch.images = [];
+      if (!batch.publicIds) batch.publicIds = [];
 
-      const images = [];
-      const publicIds = [];
-
+      //  IMAGE 1 
       if (req.files.image1) {
-        const img1 = await uploadOnCloudinary(req.files.image1[0].path, 'Batch_images');
-        images.push(img1.url);
-        publicIds.push(img1.public_id);
+        // delete old image1 only
+        if (batch.publicIds[0]) {
+          await deleteFromCloudinary(batch.publicIds[0]);
+        }
+
+        const img1 = await uploadOnCloudinary(
+          req.files.image1[0].path,
+          'Batch_images'
+        );
+
+        batch.images[0] = img1.url;
+        batch.publicIds[0] = img1.public_id;
       }
 
+      //  IMAGE 2 
       if (req.files.image2) {
-        const img2 = await uploadOnCloudinary(req.files.image2[0].path, 'Batch_images');
-        images.push(img2.url);
-        publicIds.push(img2.public_id);
-      }
+        // delete old image2 only
+        if (batch.publicIds[1]) {
+          await deleteFromCloudinary(batch.publicIds[1]);
+        }
 
-      batch.images = images;
-      batch.publicIds = publicIds;
+        const img2 = await uploadOnCloudinary(
+          req.files.image2[0].path,
+          'Batch_images'
+        );
+
+        batch.images[1] = img2.url;
+        batch.publicIds[1] = img2.public_id;
+      }
     }
 
     await category.save();
@@ -199,6 +222,7 @@ export const updateBatch = async (req, res) => {
     });
   }
 };
+
 
 // export const updateBatch = async (req, res) => {
 //   try {
