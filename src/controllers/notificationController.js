@@ -1,6 +1,8 @@
 import { deleteFromCloudinary, uploadOnCloudinary } from '../utils/cloudinary.js';
 import notificationModel from '../models/notificationModel.js';
-// POST — CREATE NOTIFICATION
+
+
+// CREATE NOTIFICATION
 export const createNotification = async (req, res) => {
   try {
     const { title, subtitle, description, link, status } = req.body;
@@ -14,7 +16,7 @@ export const createNotification = async (req, res) => {
 
     const uploadResponse = await uploadOnCloudinary(req.file.path, 'notifications');
 
-    // ⬆ Create Notification in DB
+    // Create Notification in DB
     const notification = await notificationModel.create({
       title,
       subtitle,

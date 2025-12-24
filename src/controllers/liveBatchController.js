@@ -154,6 +154,8 @@ export const updateBatch = async (req, res) => {
       'syllabus',
       'duration',
       'price',
+      'discount',
+      'discountPercent',
       'perks',
       'description',
       'teachers',

@@ -2,27 +2,44 @@ import pyqModel from '../models/pyqModels.js';
 import { uploadOnCloudinary, deleteFromCloudinary } from '../utils/cloudinary.js';
 
 //  Add new question paper inside a category
+
 export const addQuestionPaper = async (req, res) => {
+  let uploadedFile = null;
+
   try {
     const { pyqCategory, title, year } = req.body;
 
+    //  Validate inputs FIRST
+    if (!pyqCategory || !title || !year) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required',
+      });
+    }
+
     if (!req.file) {
-      return res.status(400).json({ success: false, message: 'PDF file is required' });
+      return res.status(400).json({
+        success: false,
+        message: 'PDF file is required',
+      });
     }
 
-    // Upload PDF to Cloudinary (as 'raw' file)
-    const uploadedFile = await uploadOnCloudinary(req.file.path, 'PYQ_PDFs');
-    if (!uploadedFile) {
-      return res.status(500).json({ success: false, message: 'PDF upload failed' });
-    }
-
-    // Find or create the category
+    //  Find or create category BEFORE upload
     let category = await pyqModel.findOne({ pyqCategory });
     if (!category) {
       category = new pyqModel({ pyqCategory, questionspaper: [] });
     }
 
-    // Add new question paper
+    //  Upload ONLY after validation passes
+    uploadedFile = await uploadOnCloudinary(req.file.path, 'PYQ_PDFs');
+    if (!uploadedFile) {
+      return res.status(500).json({
+        success: false,
+        message: 'PDF upload failed',
+      });
+    }
+
+    // Push question paper
     category.questionspaper.push({
       title,
       year,
@@ -37,7 +54,13 @@ export const addQuestionPaper = async (req, res) => {
       message: 'Question paper added successfully',
       data: saved,
     });
+
   } catch (error) {
+    //  ROLLBACK: delete uploaded file if anything fails
+    if (uploadedFile?.public_id) {
+      await deleteFromCloudinary(uploadedFile.public_id);
+    }
+
     res.status(500).json({
       success: false,
       message: 'Error adding question paper',
@@ -137,13 +160,17 @@ export const deleteQuestionPaper = async (req, res) => {
     // Delete image from Cloudinary
     if (paper.publicId) {
       try {
-        await deleteFromCloudinary(batch.publicId);
+        await deleteFromCloudinary(paper.publicId);
       } catch (cloudErr) {
-        console.warn('Cloudinary deletion failed:', cloudErr.message);
+        console.warn(`Cloudinary deletion  for ${paper.publicId}:`, cloudErr.message);
       }
     }
 
+    //Remove paper from array
     paper.deleteOne();
+
+    // Save parent document
+    await category.save();
 
     // If this was the last batch → delete the whole category
     if (category.questionspaper.length === 0) {
@@ -166,34 +193,78 @@ export const deleteQuestionPaper = async (req, res) => {
 };
 
 //  DELETE an entire PYQ category and all PDFs in it
+// export const deletePYQCategory = async (req, res) => {
+//   try {
+//     const { categoryId } = req.params;
+
+//     // Find the category by Id
+//     const category = await pyqModel.findById(categoryId);
+//     if (!category) {
+//       return res.status(404).json({ success: false, message: 'Category not found' });
+//     }
+
+//     // Delete all PDFs from Cloudinary (if any)
+//     for (const paper of category.questionspaper) {
+//       if (paper.publicId) {
+//         try {
+//           await deleteFromCloudinary(paper.publicId);
+//         } catch (err) {
+//           console.warn(`Cloudinary deletion failed for ${paper.publicId}:`, err.message);
+//         }
+//       }
+//     }
+
+//     // Delete the category from DB
+//     await pyqModel.deleteOne({ _id: category._id });
+
+//     res.status(200).json({
+//       success: true,
+//       message: `Category "${category.pyqCategory}" and its question papers deleted successfully`,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: 'Error deleting category',
+//       error: error.message,
+//     });
+//   }
+// };
 export const deletePYQCategory = async (req, res) => {
   try {
     const { categoryId } = req.params;
 
-    // Find the category by Id
+    //  Find category
     const category = await pyqModel.findById(categoryId);
     if (!category) {
-      return res.status(404).json({ success: false, message: 'Category not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'Category not found',
+      });
     }
 
-    // Delete all PDFs from Cloudinary (if any)
-    for (const paper of category.questionspaper) {
-      if (paper.publicId) {
-        try {
-          await deleteFromCloudinary(paper.publicId);
-        } catch (err) {
-          console.warn(`Cloudinary deletion failed for ${paper.publicId}:`, err.message);
-        }
-      }
-    }
+    //  Collect all Cloudinary delete promises
+    const deletePromises = category.questionspaper
+      .filter((paper) => paper.publicId)
+      .map((paper) =>
+        deleteFromCloudinary(paper.publicId).catch((err) => {
+          console.warn(
+            `Cloudinary deletion failed for ${paper.publicId}:`,
+            err.message
+          );
+        })
+      );
 
-    // Delete the category from DB
+    // Delete all PDFs in parallel
+    await Promise.all(deletePromises);
+
+    //  Delete category (auto deletes embedded PYQs)
     await pyqModel.deleteOne({ _id: category._id });
 
     res.status(200).json({
       success: true,
-      message: `Category "${category.pyqCategory}" and its question papers deleted successfully`,
+      message: `Category "${category.pyqCategory}" and all its PYQs deleted successfully`,
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,

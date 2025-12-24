@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const questionPaperSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
-    year: { type: Number, required: true },
+    year: [{ type: String, required: true }],
     pdf: { type: String, required: true },
     publicId: { type: String },
   },
