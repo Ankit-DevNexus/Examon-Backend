@@ -14,7 +14,7 @@ const ReviewSchema = new mongoose.Schema(
     },
     profilePicture: {
       type: String,
-      // required: true
+      default: ""
     },
     star: {
       type: Number,
