@@ -12,17 +12,16 @@ export const Authenticate = async (req, res, next) => {
 
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-console.log("DECODED TOKEN:", decoded);
+    // console.log("DECODED TOKEN:", decoded);
 
     if (!decoded.id || !decoded.role) {
       return res.status(401).json({ message: 'Invalid token payload' });
     }
 
     let user;
-console.log("decoded.role", decoded.role);
+    console.log('decoded.role', decoded.role);
 
     if (decoded.role === 'admin' || decoded.role === 'user') {
-
       user = await userModel.findById(decoded.id).lean();
     } else if (decoded.role === 'subUser') {
       user = await subUserModel.findById(decoded.id).lean();
