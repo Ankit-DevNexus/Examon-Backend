@@ -74,7 +74,7 @@ export const adminLogin = async (req, res) => {
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'none',
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
 
@@ -132,6 +132,22 @@ export const getProfile = async (req, res) => {
   }
 };
 
+// LOGOUT
+export const logoutSubUser = async (req, res) => {
+  try {
+    const user = await userModel.findById(req.user._id);
+    if (user) {
+      user.refreshToken = null;
+      user.tokenVersion += 1;
+      await user.save();
+    }
+
+    res.clearCookie('refreshToken', { path: '/api/refresh' });
+    res.json({ msg: 'Logged out successfully' });
+  } catch (err) {
+    res.status(500).json({ msg: 'Logout failed', error: err.message });
+  }
+};
 
 // export const adminLogin = async (req, res) => {
 //   try {

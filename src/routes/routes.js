@@ -11,7 +11,7 @@ import {
   getAllAchievement,
   updateAchievement,
 } from '../controllers/achievementBarController.js';
-import { adminLogin, adminSignup, getProfile } from '../controllers/adminController.js';
+import { adminLogin, adminSignup, getProfile, logoutSubUser } from '../controllers/adminController.js';
 import {
   createImageContent,
   deleteImageContent,
@@ -142,6 +142,7 @@ router.post('/admin/subuser/signin', subUserlogin);
 router.get('/admin/subuser/get', getAllSubUser);
 router.patch('/admin/subuser/edit/:id', Authenticate, editSubUser);
 router.delete('/admin/subuser/delete/:id', Authenticate, deleteSubUser);
+router.post('/logout/subuser', Authenticate, logoutSubUser);
 
 // router.get('/profile/subuser/get', Authenticate, getSubUserProfile); // get sub user profile
 
