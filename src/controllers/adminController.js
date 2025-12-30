@@ -40,7 +40,9 @@ export const adminLogin = async (req, res) => {
       return res.status(400).json({ msg: 'Email and password are required' });
     }
 
-    const user = await userModel.findOne({ email });
+    const user = await userModel.findOne({ email: email.toLowerCase() });
+    // console.log("user", user);
+    
     if (!user) {
       return res.status(400).json({ msg: 'User not found' });
     }
@@ -79,10 +81,17 @@ export const adminLogin = async (req, res) => {
     const userData = user.toObject();
     delete userData.password;
 
+    const safeUser = {
+      _id: userData._id,
+      fullname: userData.fullname,
+      email: userData.email,
+      role: userData.role,
+    }
+
     res.status(200).json({
       message: 'Admin login successful',
       accessToken,
-      user: userData,
+      user: safeUser,
     });
   } catch (error) {
     res.status(500).json({
