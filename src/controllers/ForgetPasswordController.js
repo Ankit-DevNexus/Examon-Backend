@@ -7,7 +7,6 @@ const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:9001';
 
 
 export const forgotPassword = async (req, res) => {
-
     try {
       const { email } = req.body;
       const user = await userModel.findOne({ email });

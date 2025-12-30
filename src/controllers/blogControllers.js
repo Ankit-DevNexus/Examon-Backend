@@ -8,10 +8,10 @@ export const BlogController = async (req, res) => {
   try {
     const { title, blogContent, blogCategory } = req.body;
 
-    console.log('BlogController payload');
-    console.log('req.body:', req.body);
-    console.log('req.file:', req.file);
-    
+    // console.log('BlogController payload');
+    // console.log('req.body:', req.body);
+    // console.log('req.file:', req.file);
+
     if (!title || !blogContent || !blogCategory) {
       return res.status(400).json({ message: 'All fields required' });
     }
@@ -43,9 +43,14 @@ export const BlogController = async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Blog added successfully',
-      categoryDoc
+      categoryDoc,
     });
   } catch (error) {
+    // //  delete uploaded file if anything fails
+    // if (uploadedFile?.public_id) {
+    //   await deleteFromCloudinary(uploadedFile.public_id);
+    // }
+
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }
@@ -55,8 +60,7 @@ export const AllBlogController = async (req, res) => {
   try {
     const categories = await blogModel.find().sort({ createdAt: -1 });
 
-  
- res.status(200).json({
+    res.status(200).json({
       success: true,
       totalCategory: categories.length,
       categories,
@@ -65,7 +69,6 @@ export const AllBlogController = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch blogs' });
   }
 };
-
 
 export const getBlogByIdController = async (req, res) => {
   try {
@@ -95,9 +98,9 @@ export const EditBlogController = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Blog ID required' });
     }
 
-    //  FIND BLOG 
+    //  FIND BLOG
     const categoryDoc = await blogModel.findOne({
-      "blogs._id": id,
+      'blogs._id': id,
     });
 
     if (!categoryDoc) {
@@ -106,11 +109,11 @@ export const EditBlogController = async (req, res) => {
 
     const blog = categoryDoc.blogs.id(id);
 
-    //  UPDATE TEXT FIELDS 
+    //  UPDATE TEXT FIELDS
     if (title) blog.title = title;
     if (blogContent) blog.blogContent = blogContent;
 
-    //  IMAGE UPDATE 
+    //  IMAGE UPDATE
     if (req.file) {
       // delete old image
       if (blog.publicId) {
@@ -120,17 +123,14 @@ export const EditBlogController = async (req, res) => {
       }
 
       // upload new image
-      const uploadedImage = await uploadOnCloudinary(
-        req.file.path,
-        'blogs_images'
-      );
+      const uploadedImage = await uploadOnCloudinary(req.file.path, 'blogs_images');
 
       blog.featuredImage = uploadedImage.url;
       blog.publicId = uploadedImage.public_id;
       blog.resourceType = uploadedImage.resource_type;
     }
 
-    //  CATEGORY CHANGE 
+    //  CATEGORY CHANGE
     if (blogCategory && blogCategory !== categoryDoc.blogCategory) {
       // remove blog from old category
       categoryDoc.blogs.pull(id);
@@ -156,7 +156,7 @@ export const EditBlogController = async (req, res) => {
       });
     }
 
-    //  SAVE 
+    //  SAVE
     await categoryDoc.save();
 
     res.status(200).json({
@@ -216,4 +216,3 @@ export const DeleteBlogController = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-
