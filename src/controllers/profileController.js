@@ -1,14 +1,13 @@
 import profileModel from '../models/ProfileModel.js';
 import { deleteFromCloudinary, uploadOnCloudinary } from '../utils/cloudinary.js';
-import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
 
 export const updateProfile = async (req, res) => {
   try {
     const { userId } = req.params;
     const { phone, preferedCourse } = req.body;
-console.log("req.file:", req.file);
-console.log("req.body:", req.body);
+    // console.log('req.file:', req.file);
+    // console.log('req.body:', req.body);
 
     // Find existing profile
     const profile = await profileModel.findOne({ userId });
@@ -43,7 +42,7 @@ console.log("req.body:", req.body);
       // Update profile image details
       profile.profileImage = uploadedImage.url;
       profile.publicId = uploadedImage.public_id;
-   
+
       // Delete local file safely
       try {
         if (fs.existsSync(localImagePath)) {
@@ -106,3 +105,4 @@ export const getProfileByUserId = async (req, res) => {
     });
   }
 };
+

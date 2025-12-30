@@ -1,6 +1,6 @@
 import express from 'express';
-import { deleteUsers, getAllUsers, login, logout, signup } from '../controllers/userController.js';
-import { ContactUsController, getAllContacts } from '../controllers/contactusController.js';
+import { deleteUsers, getAllUsers,  login, logout, signup } from '../controllers/userController.js';
+import { ContactUsController, deleteContactUs, getAllContacts } from '../controllers/contactusController.js';
 import upload from '../middleware/multerMiddleware.js';
 import { createReview, deleteReview, getAllReview, getAllReviewById, updateReview } from '../controllers/reviewController.js';
 import { Authenticate, authorize } from '../middleware/authMiddleware.js';
@@ -11,7 +11,7 @@ import {
   getAllAchievement,
   updateAchievement,
 } from '../controllers/achievementBarController.js';
-import { adminLogin, adminSignup } from '../controllers/adminController.js';
+import { adminLogin, adminSignup, getProfile } from '../controllers/adminController.js';
 import {
   createImageContent,
   deleteImageContent,
@@ -117,6 +117,7 @@ import {
   deleteSubUser,
   editSubUser,
   getAllSubUser,
+  // getSubUserProfile,
   resendSubUserOTP,
   subUserlogin,
   subUserSignup,
@@ -130,6 +131,9 @@ const router = express.Router();
 router.post('/admin/signup', adminSignup);
 router.post('/admin/signin', adminLogin);
 router.post('/logout', Authenticate, logout);
+router.get('/profile/get', Authenticate, getProfile); // get profile
+
+
 
 // sub user Admin
 router.post('/admin/subuser/signup', Authenticate, subUserSignup);
@@ -138,6 +142,8 @@ router.post('/admin/subuser/signin', subUserlogin);
 router.get('/admin/subuser/get', getAllSubUser);
 router.patch('/admin/subuser/edit/:id', Authenticate, editSubUser);
 router.delete('/admin/subuser/delete/:id', Authenticate, deleteSubUser);
+
+// router.get('/profile/subuser/get', Authenticate, getSubUserProfile); // get sub user profile
 
 // verify otp for sub user
 router.post('/subuser/verify-otp', verifySubUserOTP);
@@ -166,6 +172,7 @@ router.patch('/reset-password/:token', resetPassword);
 // --------------------------- contact us  ----------------------------
 router.post('/contact-us', ContactUsController);
 router.get('/contact-us', getAllContacts);
+router.delete('/contact-us/delete/:id', deleteContactUs);
 
 // --------------------------- Search  ----------------------------
 router.get('/search', globalSearch);
@@ -314,9 +321,10 @@ router.patch('/blogs/update/:id', Authenticate, upload.single('featuredImage'), 
 router.delete('/blogs/delete/:id', Authenticate, DeleteBlogController);
 
 // ------------------------------------ total count ------------------------------------
-router.get('/totalcount', totalCountController);
+router.get('/totalcount', Authenticate, totalCountController);
 
 // ------------------------------------ Notification ------------------------------------
+
 router.post('/notification/create', Authenticate, upload.single('image'), createNotification);
 router.get('/notification/latest', getLatestNotification);
 router.put('/notification/:id', upload.single('image'), updateNotification);
@@ -353,7 +361,6 @@ router.patch(
   ]),
   updateBanner,
 );
-
 
 router.delete('/banners/delete/:bannerId', Authenticate, deleteBanner);
 

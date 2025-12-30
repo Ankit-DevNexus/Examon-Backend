@@ -2,7 +2,6 @@ import pyqModel from '../models/pyqModels.js';
 import { uploadOnCloudinary, deleteFromCloudinary } from '../utils/cloudinary.js';
 
 //  Add new question paper inside a category
-
 export const addQuestionPaper = async (req, res) => {
   let uploadedFile = null;
 

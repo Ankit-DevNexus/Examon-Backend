@@ -59,7 +59,7 @@ export const ContactUsController = async (req, res) => {
     const AdminMailOptions = {
       from: process.env.EMAIL_USER,
       to: AdminMail,
-      subject: '📩 New Contact Inquiry - Examon Website',
+      subject: 'New Contact Inquiry - Examon Website',
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
           <p>Dear <strong>Examon Team</strong>,</p>
@@ -130,6 +130,25 @@ export const getAllContacts = async (req, res) => {
     });
   }
 };
+
+
+export const deleteContactUs = async (req, res) =>{
+  try {
+    const { id } = req.params;
+
+    const deleted = await contactModel.findByIdAndDelete(id)
+    
+    res.status(200).json({
+      success: true,
+      message: "deleted successfully",
+      deleted
+    })
+  } catch (error) {
+     console.error('Deleting Error:', error);
+    res.status(500).json({ success: false, message: 'Error Deleting contact leads', error: error.message });
+ 
+  }
+}
 
 // import nodemailer from 'nodemailer';
 

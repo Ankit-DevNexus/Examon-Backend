@@ -106,8 +106,27 @@ export const subUserlogin = async (req, res) => {
   }
 };
 
-// GET all sub user
+// export const getSubUserProfile = async (req, res) => {
+//   try {
+//     const userId = req.user._id;
+//     // console.log("userId", userId);
 
+//     const user = await subUserModel.findOne(userId).select('_id fullname email role');
+//     // console.log("User", user);
+
+//     res.status(200).json({
+//       success: true,
+//       message: 'Sub user profile get successfully',
+//       user,
+//     });
+//   } catch (error) {
+//     console.error('Error during get sub user profile:', error);
+//     res.status(500).json({ msg: 'Server error during get sub user profile', error: error.message });
+
+//   }
+// };
+
+// GET all sub user
 export const getAllSubUser = async (req, res) => {
   try {
     const allUser = await subUserModel.find();
@@ -121,6 +140,7 @@ export const getAllSubUser = async (req, res) => {
     res.status(500).json({ msg: 'Server error getting sub user', error: error.message });
   }
 };
+
 //  EDIT sub user
 export const editSubUser = async (req, res) => {
   try {

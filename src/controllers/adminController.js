@@ -1,4 +1,5 @@
 import { generateToken } from '../config/jwt.js';
+import subUserModel from '../models/subUserModel.js';
 import userModel from '../models/userModel.js';
 
 export const adminSignup = async (req, res) => {
@@ -19,6 +20,7 @@ export const adminSignup = async (req, res) => {
       email,
       password,
       role: role || 'admin',
+      isActive: true,
     });
 
     res.status(201).json({
@@ -54,7 +56,7 @@ export const adminLogin = async (req, res) => {
     }
 
     // Generate access & refresh tokens
-    const { accessToken, refreshToken } = generateToken(user._id);
+    const { accessToken, refreshToken } = generateToken(user);
 
     user.refreshToken = refreshToken;
     user.lastLogin = new Date();
@@ -89,6 +91,38 @@ export const adminLogin = async (req, res) => {
     });
   }
 };
+
+
+export const getProfile = async (req, res) => {
+  try {
+    const { _id, role } = req.user;
+
+    let user;
+
+    if (role === 'admin' || role === 'user') {
+      user = await userModel
+        .findById(_id)
+        .select('_id fullname email role');
+    } else if (role === 'subUser') {
+      user = await subUserModel
+        .findById(_id)
+        .select('_id fullName email role allowedTabs');
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'User profile fetched successfully',
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 
 // export const adminLogin = async (req, res) => {
 //   try {
