@@ -149,6 +149,7 @@ router.post('/logout/subuser', Authenticate, logoutSubUser);
 // verify otp for sub user
 router.post('/subuser/verify-otp', verifySubUserOTP);
 router.post('/subuser/resend-otp', resendSubUserOTP);
+
 // ---------------- OTP verification ---------------------------
 
 router.post('/verify-otp', verifyOTP);

@@ -42,7 +42,7 @@ export const adminLogin = async (req, res) => {
 
     const user = await userModel.findOne({ email: email.toLowerCase() });
     // console.log("user", user);
-    
+
     if (!user) {
       return res.status(400).json({ msg: 'User not found' });
     }
@@ -73,9 +73,10 @@ export const adminLogin = async (req, res) => {
     // Store refresh token in secure cookie
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      secure: false, 
+      // secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
     const userData = user.toObject();
@@ -86,7 +87,7 @@ export const adminLogin = async (req, res) => {
       fullname: userData.fullname,
       email: userData.email,
       role: userData.role,
-    }
+    };
 
     res.status(200).json({
       message: 'Admin login successful',
@@ -101,7 +102,6 @@ export const adminLogin = async (req, res) => {
   }
 };
 
-
 export const getProfile = async (req, res) => {
   try {
     const { _id, role } = req.user;
@@ -109,13 +109,9 @@ export const getProfile = async (req, res) => {
     let user;
 
     if (role === 'admin' || role === 'user') {
-      user = await userModel
-        .findById(_id)
-        .select('_id fullname email role');
+      user = await userModel.findById(_id).select('_id fullname email role');
     } else if (role === 'subUser') {
-      user = await subUserModel
-        .findById(_id)
-        .select('_id fullName email role allowedTabs');
+      user = await subUserModel.findById(_id).select('_id fullName email role allowedTabs');
     }
 
     if (!user) {
