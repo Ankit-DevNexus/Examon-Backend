@@ -85,11 +85,12 @@ export const login = async (req, res) => {
     });
     await user.save();
 
+    // Store refresh token in secure cookie
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'none',
-      path: '/api/refresh',
+      secure: false,
+      // secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 

@@ -6,16 +6,8 @@ const notificationSchema = new mongoose.Schema(
     description: String,
     discount: Number,
     courseId: String,
-    banner: String,
-    cta: {
-      label: String,
-      url: String,
-    },
     tags: [String],
-    expiresIn: String,
-    createdAt: String,
-    priority: String,
-    read: { type: Boolean, default: false },
+    link: String,
   },
   {
     timestamps: true,

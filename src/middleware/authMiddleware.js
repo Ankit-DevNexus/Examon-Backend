@@ -21,7 +21,7 @@ export const Authenticate = async (req, res, next) => {
     }
 
     let user;
-    console.log('decoded.role', decoded.role);
+    // console.log('decoded.role', decoded.role);
 
     if (decoded.role === 'admin' || decoded.role === 'user') {
       user = await userModel.findById(decoded.id).lean();
