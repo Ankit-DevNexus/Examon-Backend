@@ -47,14 +47,13 @@ global._io = io;
 
 // SOCKET EVENTS
 io.on('connection', (socket) => {
-  // console.log('User connected:', socket.id);
+  console.log('User connected:', socket.id);
 
   socket.on('disconnect', () => {
-    // console.log('User disconnected:', socket.id);
+    console.log('User disconnected:', socket.id);
   });
 });
 
-// CONNECT TO MONGO
 ConnectDB(process.env.MONGO_DB_URI);
 
 // CORS CONFIG
@@ -103,7 +102,6 @@ app.get('/', (req, res) => {
   res.status(200).json({ message: 'API is running' });
 });
 
-// START SERVER (Socket.IO + Express)
 server.listen(PORT,  () => {
   console.log(`Server running with Socket.IO on http://localhost:${PORT}`);
 });
