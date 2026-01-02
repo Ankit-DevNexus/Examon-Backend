@@ -33,6 +33,6 @@ jobs:
 
           npm install --production
 
-          pm2 reload ecosystem.config.js --env production
+          pm2 reload ecosystem.config.cjs --env production
           pm2 save
           EOF
