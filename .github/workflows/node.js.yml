@@ -24,7 +24,7 @@ jobs:
       - name: Deploy to VPS
         run: |
           ssh -o StrictHostKeyChecking=no examonuser@72.61.240.108 "
-            cd /var/www/examon-backend &&
+            cd /var/www/examon-backend/Examon-Backend &&
             git pull origin main &&
             npm install &&
             pm2 restart examon-backend || pm2 start ecosystem.config.cjs
