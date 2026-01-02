@@ -58,7 +58,6 @@ io.on('connection', (socket) => {
 ConnectDB(process.env.MONGO_DB_URI);
 
 // CORS CONFIG
-
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
