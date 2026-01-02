@@ -27,6 +27,7 @@ export const getLatestDiscountNotification = async (req, res) => {
 
     res.status(200).json({
       success: true,
+      count: notification.length,
       data: notification,
     });
   } catch (error) {
