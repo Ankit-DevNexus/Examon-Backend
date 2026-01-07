@@ -6,9 +6,36 @@ dotenv.config();
 
 //  Create / Add a new batch in a category
 export const addBatchToCategory = async (req, res) => {
+  console.log(req.body);
+
+  let uploadedFiles = [];
   try {
-    const { batchCategory, batchName, syllabus, duration, price, discount, discountPercent, perks, description, teachers, enrollLink } =
-      req.body;
+    
+    if (req.body.link && typeof req.body.link === 'string') {
+      try {
+        req.body.link = JSON.parse(req.body.link);
+      } catch (err) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid link format. Must be a JSON array.',
+        });
+      }
+    }
+
+    const {
+      batchCategory,
+      batchName,
+      syllabus,
+      duration,
+      price,
+      discount,
+      link,
+      discountPercent,
+      perks,
+      description,
+      teachers,
+      enrollLink,
+    } = req.body;
 
     const files = [...(req.files?.image1 || []), ...(req.files?.image2 || [])];
 
@@ -16,7 +43,7 @@ export const addBatchToCategory = async (req, res) => {
       return res.status(400).json({ success: false, message: 'At least one image is required' });
     }
 
-    const uploadedFiles = await Promise.all(
+    uploadedFiles = await Promise.all(
       files.map(async (file) => {
         const upload = await uploadOnCloudinary(file.path, 'Batch_images');
         return upload;
@@ -28,6 +55,9 @@ export const addBatchToCategory = async (req, res) => {
       existingCategory = new liveBatchModel({ batchCategory, batches: [] });
     }
 
+    // console.log('uploadedFiles', uploadedFiles);
+    // console.log('uploadedFiles', uploadedFiles[0].public_id);
+
     existingCategory.batches.push({
       batchName,
       syllabus,
@@ -37,6 +67,7 @@ export const addBatchToCategory = async (req, res) => {
       discountPercent,
       perks,
       description,
+      link,
       teachers,
       enrollLink,
 
@@ -49,6 +80,10 @@ export const addBatchToCategory = async (req, res) => {
 
     res.status(201).json({ success: true, message: 'Batch added successfully', category: saved });
   } catch (error) {
+    // ROLLBACK — delete ALL uploaded images
+    if (uploadedFiles.length > 0) {
+      await Promise.all(uploadedFiles.map((file) => deleteFromCloudinary(file.public_id, file.resource_type)));
+    }
     res.status(500).json({ success: false, message: 'Error adding batch', error: error.message });
   }
 };
@@ -138,6 +173,10 @@ export const updateBatch = async (req, res) => {
   try {
     const { categoryId, batchId } = req.params;
 
+    if (req.body.link && typeof req.body.link === 'string') {
+      req.body.link = JSON.parse(req.body.link);
+    }
+
     const category = await liveBatchModel.findById(categoryId);
     if (!category) {
       return res.status(404).json({ success: false, message: 'Category not found' });
@@ -148,7 +187,7 @@ export const updateBatch = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Batch not found' });
     }
 
-    //  UPDATE TEXT FIELDS 
+    //  UPDATE TEXT FIELDS
     const updatableFields = [
       'batchName',
       'syllabus',
@@ -158,6 +197,7 @@ export const updateBatch = async (req, res) => {
       'discountPercent',
       'perks',
       'description',
+      'link',
       'teachers',
       'enrollLink',
       'description',
@@ -170,39 +210,33 @@ export const updateBatch = async (req, res) => {
       }
     });
 
-    //  UPDATE IMAGES (SELECTIVE) 
+    //  UPDATE IMAGES (SELECTIVE)
     if (req.files) {
       // Ensure arrays exist
       if (!batch.images) batch.images = [];
       if (!batch.publicIds) batch.publicIds = [];
 
-      //  IMAGE 1 
+      //  IMAGE 1
       if (req.files.image1) {
         // delete old image1 only
         if (batch.publicIds[0]) {
           await deleteFromCloudinary(batch.publicIds[0]);
         }
 
-        const img1 = await uploadOnCloudinary(
-          req.files.image1[0].path,
-          'Batch_images'
-        );
+        const img1 = await uploadOnCloudinary(req.files.image1[0].path, 'Batch_images');
 
         batch.images[0] = img1.url;
         batch.publicIds[0] = img1.public_id;
       }
 
-      //  IMAGE 2 
+      //  IMAGE 2
       if (req.files.image2) {
         // delete old image2 only
         if (batch.publicIds[1]) {
           await deleteFromCloudinary(batch.publicIds[1]);
         }
 
-        const img2 = await uploadOnCloudinary(
-          req.files.image2[0].path,
-          'Batch_images'
-        );
+        const img2 = await uploadOnCloudinary(req.files.image2[0].path, 'Batch_images');
 
         batch.images[1] = img2.url;
         batch.publicIds[1] = img2.public_id;
@@ -224,7 +258,6 @@ export const updateBatch = async (req, res) => {
     });
   }
 };
-
 
 // export const updateBatch = async (req, res) => {
 //   try {

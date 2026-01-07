@@ -1,5 +1,14 @@
 import mongoose from 'mongoose';
 
+const linkSchema = new mongoose.Schema(
+  {
+    title: String,
+    url: String,
+    id: Number,
+  },
+  { _id: false } 
+);
+
 const batchSchema = new mongoose.Schema(
   {
     batchName: { type: String },
@@ -8,23 +17,18 @@ const batchSchema = new mongoose.Schema(
     price: { type: Number },
     discount: { type: Number },
     discountPercent: { type: Number },
-    perks:{ type: String},
-    description: {type: String},
+    perks: { type: String },
+    description: { type: String },
+
+    link: [linkSchema], 
+
     teachers: [{ type: String }],
-
-    images: [{ type: String }],      
-    publicIds: [{ type: String }],   
+    images: [{ type: String }],
+    publicIds: [{ type: String }],
     resourceType: [{ type: String }],
-
-    // images: [{
-    //   url: String,
-    //   publicId: String,
-    //   resourceType: String
-    // }],
-
     enrollLink: { type: String },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 const batchesCategorySchema = new mongoose.Schema(
@@ -32,8 +36,52 @@ const batchesCategorySchema = new mongoose.Schema(
     batchCategory: { type: String, unique: true, lowercase: true },
     batches: [batchSchema],
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 const liveBatchModel = mongoose.model('livebatch', batchesCategorySchema);
 export default liveBatchModel;
+
+
+
+// import mongoose from 'mongoose';
+
+// const batchSchema = new mongoose.Schema(
+//   {
+//     batchName: { type: String },
+//     syllabus: { type: String },
+//     duration: { type: String },
+//     price: { type: Number },
+//     discount: { type: Number },
+//     discountPercent: { type: Number },
+//     perks: { type: String },
+//     description: { type: String },
+//     link: [
+//       {
+//         title: String,
+//         url: String,
+//         id: Number,
+//       },
+//     ],
+//     teachers: [{ type: String }],
+//     images: [{ type: String }],
+//     publicIds: [{ type: String }],
+//     resourceType: [{ type: String }],
+
+//     enrollLink: { type: String },
+//   },
+//   { timestamps: true },
+// );
+
+// const batchesCategorySchema = new mongoose.Schema(
+//   {
+//     batchCategory: { type: String, unique: true, lowercase: true },
+//     batches: [batchSchema],
+//   },
+//   { timestamps: true },
+// );
+
+// const liveBatchModel = mongoose.model('livebatch', batchesCategorySchema);
+// export default liveBatchModel;
+
+
