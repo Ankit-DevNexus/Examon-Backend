@@ -6,7 +6,6 @@ import http from 'http';
 import { ConnectDB } from './config/connectDB.js';
 import Routes from './routes/routes.js';
 import cookieParser from 'cookie-parser';
-import bodyParser from 'body-parser';
 import { Server } from 'socket.io';
 
 const app = express();
