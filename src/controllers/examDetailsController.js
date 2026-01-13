@@ -8,7 +8,7 @@ export const createExamDetails = async (req, res) => {
     // console.log('req.file:', req.file);
 
     const { examDetailsCategory, title, Content } = req.body;
-    console.log('req.body', req.body);
+    // console.log('req.body', req.body);
 
     // Find or create the category
     let category = await ExamModel.findOne({ examDetailsCategory });
@@ -37,7 +37,7 @@ export const createExamDetails = async (req, res) => {
 export const uploadImageController = async (req, res) => {
   try {
     const localPath = req.file?.path;
-    console.log('localPath', localPath);
+    // console.log('localPath', localPath);
 
     // Upload to Cloudinary
     const uploadedImage = await uploadOnCloudinary(localPath, 'Exam_Details_images');

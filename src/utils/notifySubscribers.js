@@ -6,7 +6,7 @@ export const notifySubscribers = async (type, title, description, link) => {
   try {
     // Fetch all subscribers
     const subscribers = await NewsletterSubscriberModel.find({});
-    console.log('subscribers', subscribers);
+    // console.log('subscribers', subscribers);
 
     if (subscribers.length === 0) return console.log('No subscribers to notify.');
 
@@ -25,7 +25,7 @@ export const notifySubscribers = async (type, title, description, link) => {
 
     // Send email
     await sendEmail(subject, message, emails);
-    console.log(`Notification sent for new ${type}`);
+    // console.log(`Notification sent for new ${type}`);
   } catch (error) {
     console.error('Error notifying subscribers:', error);
   }

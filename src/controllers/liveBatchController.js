@@ -6,11 +6,11 @@ dotenv.config();
 
 //  Create / Add a new batch in a category
 export const addBatchToCategory = async (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
 
   let uploadedFiles = [];
   try {
-    
+
     if (req.body.link && typeof req.body.link === 'string') {
       try {
         req.body.link = JSON.parse(req.body.link);
