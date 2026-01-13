@@ -87,7 +87,7 @@ export const updateAchievement = async (req, res) => {
     const { id } = req.params;
     const updateData = req.body;
 
-    console.log('Received ID:', id);
+    // console.log('Received ID:', id);
     // console.log('Update Data:', updateData);
 
     const updatedAchievement = await achievementModel.findByIdAndUpdate(id, { $set: updateData }, { new: true, runValidators: true });

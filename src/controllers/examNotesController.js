@@ -59,10 +59,10 @@ export const getExamNotesById = async (req, res) => {
     const { categoryId, noteId } = req.params;
     const category = await StudyMaterial.findById(categoryId);
     if (!category) return res.status(404).json({ success: false, message: 'Category not found' });
-    console.log('category', category);
+    // console.log('category', category);
 
     const note = category.notes.id(noteId);
-    console.log('note', note);
+    // console.log('note', note);
 
     if (!note) return res.status(404).json({ success: false, message: 'Note not found' });
 
