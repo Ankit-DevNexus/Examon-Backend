@@ -4,8 +4,6 @@ import achievementModel from '../models/achievementBarModel.js';
 export const createAchievement = async (req, res) => {
   try {
     const { activeUser, satisfyUser, courses, passingRate, Instructors, alumni } = req.body;
-    // console.log("Received Data:", req.body);
-
     const newAchievement = new achievementModel({
       activeUser,
       satisfyUser,
