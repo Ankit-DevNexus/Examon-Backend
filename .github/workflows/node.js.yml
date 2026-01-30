@@ -19,12 +19,12 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          port: 2222
+          port: 22
           request_pty: false
           timeout: 30s
           command_timeout: 10m
           script: |
-            cd /var/www/examon-backend/Examon-Backend
+            cd /var/www/examon-backend/examon-backend
             git pull origin main
             npm install
-            pm2 reload examon-backend || pm2 start src/index.js --name examon-backend
+            pm2 reload examon-backend || pm2 start index.js 
